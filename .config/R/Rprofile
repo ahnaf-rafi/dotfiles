@@ -1,0 +1,10 @@
+local({
+  r <- getOption("repos")
+  r["CRAN"] <- "https://cloud.r-project.org/"
+  options(repos = r)
+})
+
+# Quit easily without asking to save workspace image
+qq <- function(save="no") { 
+  q(save=save) 
+}
