@@ -1,0 +1,48 @@
+# Bare repository directory.
+.dots
+
+# User directories and files that do not require version control.
+Downloads
+Dropbox
+code
+configfiles
+cdgpaths
+
+# History files.
+.bash_history
+.python_history
+
+# Sensitive information.
+.gnupg
+.ssh
+.git-credentials
+uva-certs
+
+# XDG_CACHE_HOME, XDG_DATA_HOME and XDG_STATE_HOME
+.local/share/
+.local/state/
+
+Cache directory.
+.cache/
+
+# Julia: ignore all of ~/.julia/ except ~/.julia/config
+.julia/*
+!.julia/config/
+
+# Directories and files created by user software that do not need version
+# control.
+.conda
+.java
+.juliaup
+.openjfx
+.pdfbox.cache
+.pki
+.viminfo
+.wget-hsts
+.zoom
+cups
+miniforge3
+yay
+
+# Temporary files and directories.
+tmp*
