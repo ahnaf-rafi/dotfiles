@@ -1,0 +1,22 @@
+#!/bin/sh
+bmfile="${BMFILE:-$HOME/cdgpaths}"
+currdir=$(pwd)
+
+# Create file if it doesn't exist
+[ ! -f "$bmfile" ] && touch "$bmfile"
+
+# Perform tilde contraction on current path.
+case "$currdir" in
+  "$HOME"*)
+    # Strip $HOME from the start and prepend ~.
+    currdir="~${currdir#$HOME}"
+    ;;
+esac
+
+# Check for existence (-F: fixed strings, -x: whole line, -q: quiet)
+if grep -Fxq "$currdir" "$bmfile"; then
+  printf "Directory already in ~/cdgpaths\n"
+else
+  printf "%s\n" "$currdir" >> "$bmfile"
+  printf "Added %s to ~/cdgpaths\n" "$currdir"
+fi

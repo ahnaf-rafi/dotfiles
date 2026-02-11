@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Open zathura from terminal in separate process with arguments.
+
+nohup zathura "$@" >/dev/null 2>&1 &
