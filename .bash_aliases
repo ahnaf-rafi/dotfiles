@@ -26,6 +26,9 @@ if [ -r $BMFILE ]; then
   alias cdgnv='nvim "$BMFILE"'
 fi
 
+# Vim aliases
+alias vim='vim --servername vimd'
+
 # Nvim shortcuts.
 if [ -x "$(command -v nvim)" ]; then
   alias vi='nvim'
