@@ -3,7 +3,7 @@
 # ~/.bash_aliases
 #
 
-alias ll='ls -alhF --color=auto --group-directories-first'
+alias ll='ls -alhvFA --color=auto --group-directories-first'
 alias ls='ls --color=auto'
 
 alias e=$EDITOR
