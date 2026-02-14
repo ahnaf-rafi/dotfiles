@@ -15,6 +15,7 @@ alias julia='julia --project=@.'
 
 # Dealing with dotfiles.
 alias dots='/usr/bin/git --git-dir=$HOME/.dots/ --work-tree=$HOME'
+alias lazydots='/usr/bin/lazygit --git-dir=$HOME/.dots/ --work-tree=$HOME'
 
 # Shell bookmark navigation.
 if [ -x "$(command -v cdg-path-handler)" ]; then
