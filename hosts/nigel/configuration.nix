@@ -95,6 +95,7 @@
     git
     curl
     kitty
+    stow
   ];
 
   fonts.packages = with pkgs; [
