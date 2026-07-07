@@ -5,10 +5,9 @@
 { config, lib, pkgs, ... }:
 
 {
-  imports =
-    [
-      ./hardware-configuration.nix
-    ];
+  imports = [
+    ./hardware-configuration.nix
+  ];
 
   #--------------#
   # Nix settings #
@@ -150,10 +149,12 @@
     ripgrep
     delta
     pwvucontrol
+    networkmanagerapplet
     wl-clipboard
     grim
     flameshot
     google-chrome
+    proton-vpn
   ];
 
   environment.sessionVariables = {

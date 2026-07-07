@@ -16,14 +16,14 @@ export XDG_CACHE_HOME=$HOME/.cache
 export XDG_DATA_HOME=$HOME/.local/share
 export XDG_STATE_HOME=$HOME/.local/state
 
-export TERMINAL=/usr/bin/kitty
-export TERMCMD=/usr/bin/kitty
-export BROWSER=/usr/bin/google-chrome-stable
-export PAGER=/usr/bin/less
-export MANPAGER='/usr/bin/nvim +Man!'
+export TERMINAL=kitty
+export TERMCMD=kitty
+export BROWSER=google-chrome
+export PAGER=less
+export MANPAGER='nvim +Man!'
 
-export EDITOR=/usr/bin/nvim
-export VISUAL=/usr/bin/nvim
+export EDITOR=nvim
+export VISUAL=nvim
 
 # Options for FZF
 export FZF_DEFAULT_COMMAND='fd -t f -H -L -E .dots -E .git'
