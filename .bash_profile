@@ -40,10 +40,9 @@ fi
 [[ -f ~/.bashrc ]] && . ~/.bashrc
 
 if [ -z "$WAYLAND_DISPLAY" ] && [ -n "$XDG_VTNR" ] && [ "$XDG_VTNR" -eq 1 ] ; then
-  # 1. Initialize the daemon and capture environment variables
-  export $(gnome-keyring-daemon --start --components=secrets)
-
-  exec sway
+  export XDG_SESSION_TYPE=wayland
+  export XDG_CURRENT_DESKTOP=sway
+  sway
 fi
 
 # >>> juliaup initialize >>>

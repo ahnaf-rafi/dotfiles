@@ -13,12 +13,22 @@
   # Allow proprietary packages (needed for most Wi-Fi firmware)
   nixpkgs.config.allowUnfree = true;
 
+  # Keep up to three generations
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options =  "--delete-older-than +3";
+  };
+
   # Include proprietary firmware for Wi-Fi, Bluetooth, etc.
   hardware.enableRedistributableFirmware = true;
 
   # Boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+
+  # Show only three generations
+  boot.loader.systemd-boot.configurationLimit = 3;
 
   # Hostname.
   networking.hostName = "nigel";
@@ -77,7 +87,7 @@
 
     # Set to false to use the proprietary closed-source driver, which is
     # currently the most stable option.
-    open = false;
+    open = true;
 
     # Enable the NVIDIA settings menu
     nvidiaSettings = true;
@@ -89,6 +99,26 @@
   # Packages.
   programs.firefox.enable = true;
   programs.bash.enable = true;
+  programs.sway ={
+    enable = true;
+    xwayland.enable = true;
+    wrapperFeatures.gtk = true;
+    extraPackages = with pkgs; [
+      swaylock
+      swayidle
+      foot
+      waybar
+      rofi
+      xdg-desktop-portal-wlr
+      mako
+    ];
+  };
+
+  xdg.portal = {
+    enable = true;
+    wlr.enable = true;
+    extraPortals = [ pkgs.xdg-desktop-portal-wlr ];
+  };
 
   environment.systemPackages = with pkgs; [
     vim
@@ -96,7 +126,23 @@
     curl
     kitty
     stow
+    wl-clipboard
+    grim
+    flameshot
+    fd
+    ripgrep
+    delta
   ];
+
+  environment.sessionVariables = {
+    NIXOS_OZONE_WL = "1";
+
+    # Only uncomment if the cursor is invisible/flickery.
+    # WLR_NO_HARDWARE_CURSORS = "1";
+
+    # W
+    SWAY_UNSUPPORTED_GPU = "1";
+  };
 
   fonts.packages = with pkgs; [
     nerd-fonts.jetbrains-mono

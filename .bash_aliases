@@ -13,6 +13,8 @@ alias fcd='cd $(fd --type directory | fzf)'
 
 alias julia='julia --project=@.'
 
+alias ngc='sudo nix-env --delete-generations + 3 --profile /nix/var/nix/profiles/system; sudo nix-collect-garbage -d'
+
 # Dealing with dotfiles.
 export DOTSDIR=$HOME/dotfiles
 if [ -d "$DOTSDIR" ] && [ -x "$(command -v stow)" ]; then
