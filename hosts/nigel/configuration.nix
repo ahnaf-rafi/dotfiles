@@ -10,6 +10,12 @@
       ./hardware-configuration.nix
     ];
 
+  # Allow proprietary packages (needed for most Wi-Fi firmware)
+  nixpkgs.config.allowUnfree = true;
+
+  # Include proprietary firmware for Wi-Fi, Bluetooth, etc.
+  hardware.enableRedistributableFirmware = true;
+
   # Boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
