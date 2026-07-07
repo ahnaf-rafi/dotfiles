@@ -10,8 +10,10 @@
       ./hardware-configuration.nix
     ];
 
-  # Allow proprietary packages (needed for most Wi-Fi firmware)
-  nixpkgs.config.allowUnfree = true;
+  #--------------#
+  # Nix settings #
+  #--------------#
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
   # Keep up to three generations
   nix.gc = {
@@ -20,60 +22,23 @@
     options =  "--delete-older-than +3";
   };
 
-  # Include proprietary firmware for Wi-Fi, Bluetooth, etc.
-  hardware.enableRedistributableFirmware = true;
+  # Allow proprietary packages (needed for most Wi-Fi firmware)
+  nixpkgs.config.allowUnfree = true;
 
-  # Boot loader.
+  #-------------#
+  # Boot loader #
+  #-------------#
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-
   # Show three generations: 3 gens plus option to reboot to firmware.
   boot.loader.systemd-boot.configurationLimit = 4;
 
-  # Hostname.
-  networking.hostName = "nigel";
+  #-------------------#
+  # Hardware settings #
+  #-------------------#
 
-  # Use NetworkManager (nmcli or nmtui) for configuring network connections.
-  networking.networkmanager = {
-    enable = true;
-    wifi.backend = "iwd";
-  };
-
-  # Set your time zone.
-  time.timeZone = "America/New_York";
-
-  # Select internationalisation properties.
-  # i18n.defaultLocale = "en_US.UTF-8";
-  # console = {
-  #   font = "Lat2-Terminus16";
-  #   keyMap = "us";
-  #   useXkbConfig = true; # use xkb.options in tty.
-  # };
-
-  # Configure keymap in X11.
-  # services.xserver.xkb.layout = "us";
-  # services.xserver.xkb.options = "eurosign:e,caps:escape";
-
-  # Enable CUPS to print documents.
-  # services.printing.enable = true;
-
-  # Enable sound.
-  # services.pulseaudio.enable = true;
-  # OR
-  # services.pipewire = {
-  #   enable = true;
-  #   pulse.enable = true;
-  # };
-
-  # Enable touchpad support (enabled default in most desktopManager).
-  # services.libinput.enable = true;
-
-  # Nix settings.
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
-
-  # ================================= #
-  # Graphics and NVIDIA Configuration #
-  # ================================= #
+  # Include proprietary firmware for Wi-Fi, Bluetooth, etc.
+  hardware.enableRedistributableFirmware = true;
 
   # Enable graphics support (replaces hardware.opengl in newer NixOS versions)
   hardware.graphics.enable = true;
@@ -96,10 +61,58 @@
     package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
 
-  # Packages.
-  programs.firefox.enable = true;
-  programs.bash.enable = true;
-  programs.sway ={
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+  };
+
+  service.blueman.enable = true;
+
+  # Enable touchpad support (enabled default in most desktopManager).
+  # services.libinput.enable = true;
+
+  #------------#
+  # Networking #
+  #------------#
+  # Hostname.
+  networking.hostName = "nigel";
+
+  # Use NetworkManager (nmcli or nmtui) for configuring network connections.
+  networking.networkmanager = {
+    enable = true;
+    wifi.backend = "iwd"; 
+  };
+
+  # Set your time zone.
+  time.timeZone = "America/New_York";
+
+  # Configure keymap in X11.
+  # services.xserver.xkb.layout = "us";
+  # services.xserver.xkb.options = "eurosign:e,caps:escape";
+
+  # Enable CUPS to print documents.
+  # services.printing.enable = true;
+
+  #-------#
+  # Audio #
+  #-------#
+
+  software.pulseaudio.enable = false;
+
+  security.rtkit.enable = true;
+
+  # Enable pipewire.
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
+
+  #----------------------#
+  # Window manager: sway #
+  #----------------------#
+  programs.sway = {
     enable = true;
     xwayland.enable = true;
     wrapperFeatures.gtk = true;
@@ -120,19 +133,26 @@
     extraPortals = [ pkgs.xdg-desktop-portal-wlr ];
   };
 
+  #----------#
+  # Packages #
+  #----------#
+  programs.firefox.enable = true;
+  programs.bash.enable = true;
+
   environment.systemPackages = with pkgs; [
     vim
     git
     curl
     kitty
     stow
-    wl-clipboard
-    grim
-    flameshot
     fzf
     fd
     ripgrep
     delta
+    pwvucontrol
+    wl-clipboard
+    grim
+    flameshot
     google-chrome
   ];
 
@@ -151,12 +171,17 @@
     julia-mono
   ];
 
-  # Services to be enabled.
+  #------------------------#
+  # Services to be enabled #
+  #------------------------#
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
 
-  # User account. Don't forget to set a password with ‘passwd’.
+  #---------------# 
+  # User accounts # 
+  #---------------# 
+  # Don't forget to set a password with ‘passwd’.
   users.users.ahnaf = {
     isNormalUser = true;
     shell = pkgs.bashInteractive;
