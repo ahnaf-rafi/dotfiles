@@ -1,0 +1,12 @@
+--no-folding
+--ignore=^\.git
+--ignore=^\.stowrc
+--ignore=^\.DS_Store
+--ignore=^\.gitignore
+--ignore=^extras
+--ignore=^LICENSE
+--ignore=^README\.org
+--ignore=^hosts
+--ignore=^modules
+--ignore=^flake.nix
+--ignore=^flake.lock
