@@ -52,15 +52,9 @@
   # Nix settings.
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
-  # User account. Don't forget to set a password with ‘passwd’.
-  users.users.ahnaf = {
-    isNormalUser = true;
-    extraGroups = [ "wheel" ];
-    # packages = with pkgs; [ ];
-  };
-
-  # Packages
+  # Packages.
   programs.firefox.enable = true;
+  programs.bash.enable = true;
 
   environment.systemPackages = with pkgs; [
     vim
@@ -78,6 +72,14 @@
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
+
+  # User account. Don't forget to set a password with ‘passwd’.
+  users.users.ahnaf = {
+    isNormalUser = true;
+    shell = pkgs.bashInteractive;
+    extraGroups = [ "wheel" "networkmanager" ];
+    # packages = with pkgs; [ ];
+  };
 
   # Copy the NixOS configuration file and link it from the resulting system
   # (/run/current-system/configuration.nix). This is useful in case you
