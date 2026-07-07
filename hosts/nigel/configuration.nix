@@ -66,7 +66,7 @@
     powerOnBoot = true;
   };
 
-  service.blueman.enable = true;
+  services.blueman.enable = true;
 
   # Enable touchpad support (enabled default in most desktopManager).
   # services.libinput.enable = true;
@@ -97,7 +97,7 @@
   # Audio #
   #-------#
 
-  software.pulseaudio.enable = false;
+  services.pulseaudio.enable = false;
 
   security.rtkit.enable = true;
 
