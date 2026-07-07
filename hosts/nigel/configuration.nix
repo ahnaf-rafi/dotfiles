@@ -27,8 +27,8 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # Show only three generations
-  boot.loader.systemd-boot.configurationLimit = 3;
+  # Show three generations: 3 gens plus option to reboot to firmware.
+  boot.loader.systemd-boot.configurationLimit = 4;
 
   # Hostname.
   networking.hostName = "nigel";
@@ -129,9 +129,11 @@
     wl-clipboard
     grim
     flameshot
+    fzf
     fd
     ripgrep
     delta
+    google-chrome
   ];
 
   environment.sessionVariables = {
@@ -140,7 +142,7 @@
     # Only uncomment if the cursor is invisible/flickery.
     # WLR_NO_HARDWARE_CURSORS = "1";
 
-    # W
+    # With Sway 1.12+, this silences NVIDIA warning.:wq
     SWAY_UNSUPPORTED_GPU = "1";
   };
 

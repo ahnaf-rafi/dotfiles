@@ -42,6 +42,7 @@ fi
 if [ -z "$WAYLAND_DISPLAY" ] && [ -n "$XDG_VTNR" ] && [ "$XDG_VTNR" -eq 1 ] ; then
   export XDG_SESSION_TYPE=wayland
   export XDG_CURRENT_DESKTOP=sway
+  export  SWAY_UNSUPPORTED_GPU=1
   sway
 fi
 
