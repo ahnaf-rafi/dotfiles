@@ -1,0 +1,28 @@
+[user]
+  name = Ahnaf Rafi
+  email = ahnaf.al.rafi@gmail.com
+
+[github]
+  user = ahnaf-rafi
+
+[core]
+	editor = nvim
+  pager = delta
+
+[interactive]
+  diffFilter = delta --color-only
+
+[delta]
+  navigate = true
+
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+
+[init]
+	defaultBranch = main
+
+[credential]
+	helper = store
