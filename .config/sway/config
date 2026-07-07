@@ -1,0 +1,355 @@
+#################################################
+# Sway configuration                            #
+#################################################
+# Notes:                                        #
+# ------                                        #
+# - Read `man 5 sway` for a complete reference. #
+#################################################
+
+#############
+# Variables #
+#############
+# Logo key. Use Mod1 for Alt.
+set $mod Mod4
+set $alt Mod1
+# Home row direction keys, like vim.
+set $left h
+set $down j
+set $up k
+set $right l
+# Preferred terminal emulator.
+# set $term kitty
+# set $browser google-chrome
+# Menu for launching applications from desktop files.
+set $desktop-menu rofi -show drun -show-icons
+# Menu for running commands (from executables).
+set $exec-menu rofi -show run
+# Menu for navigating windows.
+set $window-menu rofi -show window
+
+# Font for window titles.
+font pango:JetBrainsMono Nerd Font 12px
+
+##############
+# Autostarts #
+##############
+# System tray indicator for NetworkManager.
+exec --no-startup-id nm-applet --indicator
+# System tray indicator for Blueman (bluetooth manager).
+exec --no-startup-id blueman-applet
+# Mako for desktop notifications.
+exec --no-startup-id mako
+
+########################
+# Output configuration #
+########################
+# Default wallpaper
+output * bg ~/wallpapers/chicago.jpg fill #0000ff
+
+#######################
+# Input configuration #
+#######################
+
+input type:pointer {
+  natural_scroll enabled
+}
+
+input type:touchpad {
+  tap enabled
+  natural_scroll enabled
+  middle_emulation enabled
+}
+
+input type:keyboard {
+  # Remap capslock to ctrl.
+  xkb_options caps:ctrl_modifier
+}
+
+################
+# Key bindings #
+################
+# Start a terminal.
+bindsym $mod+Return exec $TERMINAL
+
+# Launch browser.
+bindsym $mod+Shift+Return exec $BROWSER
+
+# Kill focused window.
+bindsym $mod+Shift+q kill
+
+# Launch application from desktop files.
+bindsym $mod+Space exec $desktop-menu
+# Run executable command.
+bindsym $mod+Shift+Space exec $exec-menu
+# Navigate windows.
+bindsym $alt+Tab exec $window-menu
+
+# Deal with notifications.
+bindsym $mod+n exec makoctl dismiss
+bindsym $mod+Shift+n exec makoctl dismiss -a
+bindsym $mod+$alt+n exec "makoctl history | rofi -dmenu"
+
+# Drag floating windows by holding down $mod and left mouse button.
+# Resize them with right mouse button + $mod.
+# Despite the name, also works for non-floating windows.
+# Change normal to inverse to use left mouse button for resizing and right
+# mouse button for dragging.
+floating_modifier $mod normal
+
+# Reload the configuration file.
+bindsym $mod+Shift+r reload
+
+# Moving around:
+# Move your focus around
+bindsym $mod+$left focus left
+bindsym $mod+$down focus down
+bindsym $mod+$up focus up
+bindsym $mod+$right focus right
+# Or use $mod+[up|down|left|right]
+bindsym $mod+Left focus left
+bindsym $mod+Down focus down
+bindsym $mod+Up focus up
+bindsym $mod+Right focus right
+# Move the focused window with the same, but add Shift
+bindsym $mod+Shift+$left move left
+bindsym $mod+Shift+$down move down
+bindsym $mod+Shift+$up move up
+bindsym $mod+Shift+$right move right
+# Ditto, with arrow keys
+bindsym $mod+Shift+Left move left
+bindsym $mod+Shift+Down move down
+bindsym $mod+Shift+Up move up
+bindsym $mod+Shift+Right move right
+
+# navigate across parent containers
+bindsym $mod+$alt+h focus parent; focus left
+bindsym $mod+$alt+j focus parent; focus down
+bindsym $mod+$alt+k focus parent; focus up
+bindsym $mod+$alt+l focus parent; focus right
+
+bindsym $mod+$alt+Left focus parent; focus left
+bindsym $mod+$alt+Down focus parent; focus down
+bindsym $mod+$alt+Up focus parent; focus up
+bindsym $mod+$alt+Right focus parent; focus right
+
+# Move parent containers.
+bindsym $mod+$alt+Shift+h focus parent; move left
+bindsym $mod+$alt+Shift+j focus parent; move down
+bindsym $mod+$alt+Shift+k focus parent; move up
+bindsym $mod+$alt+Shift+l focus parent; move right
+
+bindsym $mod+$alt+Shift+Left focus parent; move left
+bindsym $mod+$alt+Shift+Down focus parent; move down
+bindsym $mod+$alt+Shift+Up focus parent; move up
+bindsym $mod+$alt+Shift+Right focus parent; move right
+
+# Workspaces:
+# Define names for default workspaces for which we configure key bindings later
+# on.
+# We use variables to avoid repeating the names in multiple places.
+set $ws01 "1"
+set $ws02 "2"
+set $ws03 "3"
+set $ws04 "4"
+set $ws05 "5"
+set $ws06 "6"
+set $ws07 "7"
+set $ws08 "8"
+set $ws09 "9"
+set $ws10 "10"
+set $ws11 "11"
+set $ws12 "12"
+set $ws13 "13"
+set $ws14 "14"
+set $ws15 "15"
+set $ws16 "16"
+set $ws17 "17"
+set $ws18 "18"
+set $ws19 "19"
+set $ws20 "20"
+
+# Switch to workspace
+bindsym $mod+1      workspace number $ws01
+bindsym $mod+2      workspace number $ws02
+bindsym $mod+3      workspace number $ws03
+bindsym $mod+4      workspace number $ws04
+bindsym $mod+5      workspace number $ws05
+bindsym $mod+6      workspace number $ws06
+bindsym $mod+7      workspace number $ws07
+bindsym $mod+8      workspace number $ws08
+bindsym $mod+9      workspace number $ws09
+bindsym $mod+0      workspace number $ws10
+bindsym $mod+Ctrl+1 workspace number $ws11
+bindsym $mod+Ctrl+2 workspace number $ws12
+bindsym $mod+Ctrl+3 workspace number $ws13
+bindsym $mod+Ctrl+4 workspace number $ws14
+bindsym $mod+Ctrl+5 workspace number $ws15
+bindsym $mod+Ctrl+6 workspace number $ws16
+bindsym $mod+Ctrl+7 workspace number $ws17
+bindsym $mod+Ctrl+8 workspace number $ws18
+bindsym $mod+Ctrl+9 workspace number $ws19
+bindsym $mod+Ctrl+0 workspace number $ws20
+# Move focused container to workspace
+bindsym $mod+Shift+1      move container to workspace number $ws01
+bindsym $mod+Shift+2      move container to workspace number $ws02
+bindsym $mod+Shift+3      move container to workspace number $ws03
+bindsym $mod+Shift+4      move container to workspace number $ws04
+bindsym $mod+Shift+5      move container to workspace number $ws05
+bindsym $mod+Shift+6      move container to workspace number $ws06
+bindsym $mod+Shift+7      move container to workspace number $ws07
+bindsym $mod+Shift+8      move container to workspace number $ws08
+bindsym $mod+Shift+9      move container to workspace number $ws09
+bindsym $mod+Shift+0      move container to workspace number $ws10
+bindsym $mod+Shift+Ctrl+1 move container to workspace number $ws11
+bindsym $mod+Shift+Ctrl+2 move container to workspace number $ws12
+bindsym $mod+Shift+Ctrl+3 move container to workspace number $ws13
+bindsym $mod+Shift+Ctrl+4 move container to workspace number $ws14
+bindsym $mod+Shift+Ctrl+5 move container to workspace number $ws15
+bindsym $mod+Shift+Ctrl+6 move container to workspace number $ws16
+bindsym $mod+Shift+Ctrl+7 move container to workspace number $ws17
+bindsym $mod+Shift+Ctrl+8 move container to workspace number $ws18
+bindsym $mod+Shift+Ctrl+9 move container to workspace number $ws19
+bindsym $mod+Shift+Ctrl+0 move container to workspace number $ws20
+
+# Move focused container to workspace, move to workspace
+bindsym $mod+$alt+1 move container to workspace number $ws01; workspace number $ws01
+bindsym $mod+$alt+2 move container to workspace number $ws02; workspace number $ws02
+bindsym $mod+$alt+3 move container to workspace number $ws03; workspace number $ws03
+bindsym $mod+$alt+4 move container to workspace number $ws04; workspace number $ws04
+bindsym $mod+$alt+5 move container to workspace number $ws05; workspace number $ws05
+bindsym $mod+$alt+6 move container to workspace number $ws06; workspace number $ws06
+bindsym $mod+$alt+7 move container to workspace number $ws07; workspace number $ws07
+bindsym $mod+$alt+8 move container to workspace number $ws08; workspace number $ws08
+bindsym $mod+$alt+9 move container to workspace number $ws09; workspace number $ws09
+bindsym $mod+$alt+0 move container to workspace number $ws10; workspace number $ws10
+bindsym $mod+$alt+Ctrl+1 move container to workspace number $ws11; workspace number $ws11
+bindsym $mod+$alt+Ctrl+2 move container to workspace number $ws12; workspace number $ws12
+bindsym $mod+$alt+Ctrl+3 move container to workspace number $ws13; workspace number $ws13
+bindsym $mod+$alt+Ctrl+4 move container to workspace number $ws14; workspace number $ws14
+bindsym $mod+$alt+Ctrl+5 move container to workspace number $ws15; workspace number $ws15
+bindsym $mod+$alt+Ctrl+6 move container to workspace number $ws16; workspace number $ws16
+bindsym $mod+$alt+Ctrl+7 move container to workspace number $ws17; workspace number $ws17
+bindsym $mod+$alt+Ctrl+8 move container to workspace number $ws18; workspace number $ws18
+bindsym $mod+$alt+Ctrl+9 move container to workspace number $ws19; workspace number $ws19
+bindsym $mod+$alt+Ctrl+0 move container to workspace number $ws20; workspace number $ws20
+
+# Workspace navigation
+bindsym $mod+Home workspace $ws01
+bindsym $mod+Shift+Home move container to workspace $ws01
+bindsym $mod+$alt+Home move container to workspace $ws01; workspace number $ws01
+bindsym $mod+End workspace $ws10
+bindsym $mod+Shift+End move container to workspace $ws10
+bindsym $mod+$alt+End move container to workspace $ws10; workspace number $ws10
+bindsym $mod+Prior workspace prev
+bindsym $mod+Ctrl+k workspace prev
+bindsym $mod+Shift+Prior move container to workspace prev
+bindsym $mod+$alt+Prior move container to workspace prev; workspace prev
+bindsym $mod+Ctrl+Shift+k move container to workspace prev; workspace prev
+bindsym $mod+Next workspace next
+bindsym $mod+Ctrl+j workspace next
+bindsym $mod+Shift+Next move container to workspace next
+bindsym $mod+$alt+Next move container to workspace next; workspace next
+bindsym $mod+Ctrl+Shift+j move container to workspace next; workspace next
+bindsym $mod+Tab workspace back_and_forth
+
+# Change monitor focus
+bindsym $mod+m focus output left
+bindsym $mod+Shift+m move container to output left; focus output left
+
+# Split in horizontal orientation
+bindsym $mod+semicolon splith
+
+# Split in vertical orientation
+bindsym $mod+v splitv
+
+# Switch the current container between different layout styles
+bindsym $mod+s layout stacking
+bindsym $mod+w layout tabbed
+bindsym $mod+e layout toggle split
+
+# Make the current focus fullscreen
+bindsym $mod+Shift+f fullscreen
+
+# Toggle the current focus between tiling and floating mode
+bindsym $mod+Shift+d floating toggle
+
+# Swap focus between the tiling area and the floating area
+bindsym $mod+d focus mode_toggle
+
+# Move focus to the parent container
+bindsym $mod+a focus parent
+
+# Scratchpad:
+#
+# Sway has a "scratchpad", which is a bag of holding for windows.
+# You can send windows there and get them back later.
+
+# Move the currently focused window to the scratchpad
+bindsym $mod+Shift+minus move scratchpad
+
+# Show the next scratchpad window or hide the focused scratchpad window.
+# If there are multiple scratchpad windows, this command cycles through them.
+bindsym $mod+minus scratchpad show
+
+# Resizing containers:
+mode "resize" {
+  # left will shrink the containers width
+  # right will grow the containers width
+  # up will shrink the containers height
+  # down will grow the containers height
+  bindsym $left resize shrink width 10px
+  bindsym $down resize grow height 10px
+  bindsym $up resize shrink height 10px
+  bindsym $right resize grow width 10px
+
+  # Ditto, with arrow keys
+  bindsym Left resize shrink width 10px
+  bindsym Down resize grow height 10px
+  bindsym Up resize shrink height 10px
+  bindsym Right resize grow width 10px
+
+  # Return to default mode
+  bindsym Return mode "default"
+  bindsym Escape mode "default"
+}
+bindsym $mod+r mode "resize"
+
+
+# Exit sway (logs you out of your Wayland session).
+bindsym $mod+Shift+e exec swaynag -t warning -m 'You pressed the exit shortcut. Do you really want to exit sway? This will end your Wayland session.' -B 'Yes, exit sway' 'swaymsg exit'
+
+# Utilities:
+#
+# Special keys to adjust volume via PulseAudio
+bindsym --locked XF86AudioLowerVolume exec pactl set-sink-volume \@DEFAULT_SINK@ -1%
+bindsym --locked Shift+XF86AudioLowerVolume exec pactl set-sink-volume \@DEFAULT_SINK@ -5%
+bindsym --locked XF86AudioRaiseVolume exec pactl set-sink-volume \@DEFAULT_SINK@ +1%
+bindsym --locked Shift+XF86AudioRaiseVolume exec pactl set-sink-volume \@DEFAULT_SINK@ +5%
+bindsym --locked XF86AudioMicMute exec pactl set-source-mute \@DEFAULT_SOURCE@ toggle
+bindsym --locked XF86AudioMute exec pactl set-sink-mute \@DEFAULT_SINK@ toggle
+# Special keys to adjust brightness via brightnessctl
+bindsym --locked XF86MonBrightnessDown exec brightnessctl set 5%-
+bindsym --locked XF86MonBrightnessUp exec brightnessctl set 5%+
+# Special key to take a screenshot with grim
+bindsym Print exec grim
+
+##############
+# Status bar #
+##############
+# Read `man 5 sway-bar` for more information about this section.
+bar {
+  swaybar_command waybar
+}
+
+################
+# Window rules #
+################
+# Fix for flameshot showing up on right-most monitor only.
+# See: https://wiki.archlinux.org/title/Flameshot#Flameshot_does_not_work_on_all_monitors_of_a_multi-monitor_setup_in_Sway
+for_window [app_id="flameshot"] border pixel 0, floating enable, fullscreen disable, move absolute position 0 0
+
+##########
+# Footer #
+##########
+# This line is expected in the user configuration for sway.
+include /etc/sway/config.d/*
