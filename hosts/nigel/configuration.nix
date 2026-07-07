@@ -24,7 +24,10 @@
   networking.hostName = "nigel";
 
   # Use NetworkManager (nmcli or nmtui) for configuring network connections.
-  networking.networkmanager.enable = true;
+  networking.networkmanager = {
+    enable = true;
+    wifi.backend = "iwd";
+  };
 
   # Set your time zone.
   time.timeZone = "America/New_York";
