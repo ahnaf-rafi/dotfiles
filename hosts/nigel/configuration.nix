@@ -2,11 +2,13 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ config, lib, pkgs, ... }:
+{ config, pkgs, lib, inputs, ... }:
 
 {
   imports = [
     ./hardware-configuration.nix
+    ../../modules/common/nixpkgs-overlays.nix
+    ../../modules/common/emacs.nix
   ];
 
   #--------------#
@@ -137,9 +139,10 @@
   #----------#
   programs.firefox.enable = true;
   programs.bash.enable = true;
+  programs.neovim.enable = true;
 
   environment.systemPackages = with pkgs; [
-    vim
+    vim-full
     git
     curl
     kitty

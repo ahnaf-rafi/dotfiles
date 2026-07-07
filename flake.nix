@@ -14,6 +14,7 @@
     nixosConfigurations = {
       nigel = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
+        specialArgs = { inherit inputs; };
         modules = [
           ./hosts/nigel/configuration.nix
         ];
