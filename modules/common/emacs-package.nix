@@ -30,6 +30,7 @@ in
   # Treesit grammars.
   (treesit-grammars.with-grammars (grammars: with grammars; [
     tree-sitter-bash
+    tree-sitter-toml
     tree-sitter-nix
     tree-sitter-julia
     tree-sitter-typst
