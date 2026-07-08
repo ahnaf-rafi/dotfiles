@@ -9,6 +9,7 @@
     ./hardware-configuration.nix
     ../../modules/common/nixpkgs-overlays.nix
     ../../modules/common/emacs.nix
+    ../../modules/common/tex.nix
     ../../modules/nixos/emacsclient.nix
   ];
 
@@ -134,6 +135,7 @@
   programs.neovim.enable = true;
 
   environment.systemPackages = with pkgs; [
+    # CLI software
     vim-full
     git
     curl
@@ -144,6 +146,9 @@
     ripgrep
     delta
     rclone
+    julia
+
+    # GUI software
     pulseaudio
     pavucontrol
     networkmanagerapplet
@@ -153,7 +158,6 @@
     google-chrome
     proton-vpn
     zathura
-
     libreoffice
     hunspell
     hunspellDicts.en-us
