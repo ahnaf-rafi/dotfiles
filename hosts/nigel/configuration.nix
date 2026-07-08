@@ -151,6 +151,7 @@
     rclone
 
     # GUI software
+    dropbox
     pulseaudio
     pavucontrol
     networkmanagerapplet
