@@ -11,6 +11,7 @@
     ../../modules/common/tex.nix
     ../../modules/common/R.nix
     ../../modules/common/RStudio.nix
+    ../../modules/common/julia.nix
     ../../modules/common/emacs.nix
     ../../modules/nixos/emacsclient.nix
   ];
@@ -148,7 +149,6 @@
     ripgrep
     delta
     rclone
-    julia
 
     # GUI software
     pulseaudio
