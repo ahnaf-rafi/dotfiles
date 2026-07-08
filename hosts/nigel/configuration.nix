@@ -9,6 +9,8 @@
     ./hardware-configuration.nix
     ../../modules/common/nixpkgs-overlays.nix
     ../../modules/common/tex.nix
+    ../../modules/common/R.nix
+    ../../modules/common/RStudio.nix
     ../../modules/common/emacs.nix
     ../../modules/nixos/emacsclient.nix
   ];
