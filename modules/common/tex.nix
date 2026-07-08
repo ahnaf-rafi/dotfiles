@@ -1,5 +1,5 @@
 { pkgs, ... }:
 
 {
-  environment.systemPackages = with pkgs; [ texliveFull ];
+  environment.systemPackages = with pkgs; [ texliveFull texlab ];
 }
