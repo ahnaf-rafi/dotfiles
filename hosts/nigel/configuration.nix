@@ -143,6 +143,7 @@
     fd
     ripgrep
     delta
+    rclone
     pwvucontrol
     networkmanagerapplet
     wl-clipboard
