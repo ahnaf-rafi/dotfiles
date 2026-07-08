@@ -148,9 +148,11 @@
     fd
     ripgrep
     delta
+    htop
     rclone
 
     # GUI software
+    mission-center
     dropbox
     pulseaudio
     pavucontrol
