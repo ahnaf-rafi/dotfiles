@@ -39,6 +39,8 @@ exec --no-startup-id nm-applet --indicator
 exec --no-startup-id blueman-applet
 # Mako for desktop notifications.
 exec --no-startup-id mako
+# Dropbox.
+exec --no-startup-id dropbox
 
 ########################
 # Output configuration #
