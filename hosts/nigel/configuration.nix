@@ -69,8 +69,6 @@
 
   services.blueman.enable = true;
 
-  # Enable touchpad support (enabled default in most desktopManager).
-  # services.libinput.enable = true;
 
   #------------#
   # Networking #
@@ -86,13 +84,6 @@
 
   # Set your time zone.
   time.timeZone = "America/New_York";
-
-  # Configure keymap in X11.
-  # services.xserver.xkb.layout = "us";
-  # services.xserver.xkb.options = "eurosign:e,caps:escape";
-
-  # Enable CUPS to print documents.
-  # services.printing.enable = true;
 
   #-------#
   # Audio #
@@ -162,9 +153,6 @@
 
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";
-
-    # Only uncomment if the cursor is invisible/flickery.
-    # WLR_NO_HARDWARE_CURSORS = "1";
 
     # With Sway 1.12+, this silences NVIDIA warning.:wq
     SWAY_UNSUPPORTED_GPU = "1";
