@@ -10,3 +10,5 @@
 --ignore=^modules
 --ignore=^flake.nix
 --ignore=^flake.lock
+--ignore=^\.config/emacs/ar-emacs\.org
+--ignore=^\.config/emacs/.*\.org
