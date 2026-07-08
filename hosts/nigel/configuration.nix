@@ -144,7 +144,8 @@
     ripgrep
     delta
     rclone
-    pwvucontrol
+    pulseaudio
+    pavucontrol
     networkmanagerapplet
     wl-clipboard
     grim
