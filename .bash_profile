@@ -18,7 +18,7 @@ export XDG_STATE_HOME=$HOME/.local/state
 
 export TERMINAL=kitty
 export TERMCMD=kitty
-export BROWSER=google-chrome
+export BROWSER=google-chrome-stable
 export PAGER=less
 export MANPAGER='nvim +Man!'
 
