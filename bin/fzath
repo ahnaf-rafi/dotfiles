@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# Search PDF files with fzf (and fd if it exists) and open with zathura.
+# 1. Find PDFs (case-insensitive).
+# 2. Let user select via fzf.
+# 3. If a file was selected, open with zathura and disown.
+
+# Determine which search tool to use
+if command -v fd >/dev/null 2>&1; then
+    # fd is installed; use it (much faster, ignores hidden/git)
+    selection=$(fd . "$@" -e pdf | fzf)
+elif command -v fdfind >/dev/null 2>&1; then
+    # On some systems (like Ubuntu), fd is renamed to fdfind
+    selection=$(fdfind . "$@" -e pdf | fzf)
+else
+    # Fallback to standard POSIX find
+    selection=$(find . "$@" -type f -iname "*.pdf" | fzf)
+fi
+
+if [ -n "$selection" ]; then
+  nohup zathura "$selection" >/dev/null 2>&1 &
+  printf "Opening: %s\n" "$selection"
+fi

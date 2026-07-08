@@ -1,0 +1,23 @@
+#!/bin/sh
+# Bookmark navigation in shell with fzf.
+# Required: sed, fzf.
+
+# Bookmarks are stored in ~/cdgpaths.
+bmfile="${BMFILE:-$XDG_DATA_HOME/cdgpaths}"
+
+# Backup: don't change directory from current one.
+destdir=$(pwd)
+
+if [ -r "$bmfile" ]; then
+  destdir=$(sed 's/#.*//g; /^[[:space:]]*$/d' "$bmfile" | fzf)
+  if [ -n "$destdir" ]; then
+    # Perform tilde expansion if needed.
+    case "$destdir" in
+      '~'*) destdir="$HOME${destdir#?}" ;;
+    esac
+  fi
+else
+  echo "Error: $bmfile is not readable; returning to current directory"
+fi
+
+echo -n "$destdir"
