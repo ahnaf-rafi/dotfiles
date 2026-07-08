@@ -1,0 +1,23 @@
+# set recolor-darkcolor "#dcdccc"
+# set recolor-lightcolor "#1f1f1f"
+
+# Font
+set font "JuliaMono 12"
+
+# Clipboard setting.
+set selection-clipboard clipboard
+
+# Adjust view to be "fit to width" when opening file.
+set adjust-open "width"
+
+# Show status bar (s) and vertical scrollbar (v).
+set guioptions sv
+
+# Column in which the first page will be displayed.
+set first-page-column 1
+
+# Percentage amount that is zoomed in or out on each command.
+set zoom-step 2
+
+# Copy file path to clipboard.
+map <C-o> feedkeys ":exec sh -c \"echo -n $FILE | mycp\"<Return>"
