@@ -9,6 +9,7 @@
     ./hardware-configuration.nix
     ../../modules/common/nixpkgs-overlays.nix
     ../../modules/common/emacs.nix
+    ../../modules/nixos/emacsclient.nix
   ];
 
   #--------------#
@@ -79,7 +80,7 @@
   # Use NetworkManager (nmcli or nmtui) for configuring network connections.
   networking.networkmanager = {
     enable = true;
-    wifi.backend = "iwd"; 
+    wifi.backend = "iwd";
   };
 
   # Set your time zone.
@@ -160,6 +161,7 @@
 
   fonts.packages = with pkgs; [
     nerd-fonts.jetbrains-mono
+    nerd-fonts.symbols-only
     julia-mono
   ];
 
@@ -170,9 +172,9 @@
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
 
-  #---------------# 
-  # User accounts # 
-  #---------------# 
+  #---------------#
+  # User accounts #
+  #---------------#
   # Don't forget to set a password with ‘passwd’.
   users.users.ahnaf = {
     isNormalUser = true;
