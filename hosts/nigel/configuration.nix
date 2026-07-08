@@ -163,7 +163,7 @@
     zathura
     libreoffice
     hunspell
-    hunspellDicts.en-us
+    hunspellDicts.en_US-large
   ];
 
   environment.sessionVariables = {
