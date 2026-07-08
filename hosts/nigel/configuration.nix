@@ -152,6 +152,11 @@
     flameshot
     google-chrome
     proton-vpn
+    zathura
+
+    libreoffice
+    hunspell
+    hunspellDicts.en-us
   ];
 
   environment.sessionVariables = {
