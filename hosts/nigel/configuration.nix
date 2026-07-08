@@ -164,6 +164,7 @@
     libreoffice
     hunspell
     hunspellDicts.en_US-large
+    goldendict-ng
   ];
 
   environment.sessionVariables = {
