@@ -74,7 +74,6 @@
 
   services.blueman.enable = true;
 
-
   #------------#
   # Networking #
   #------------#
@@ -150,6 +149,7 @@
     ripgrep
     delta
     htop
+    pciutils
     rclone
 
     # GUI software
@@ -160,6 +160,7 @@
     pavucontrol
     networkmanagerapplet
     wl-clipboard
+    kanshi
     grim
     flameshot
     google-chrome
@@ -173,6 +174,9 @@
 
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";
+
+    # Essential for Sway to not crash with the proprietary NVIDIA driver.
+    WLR_NO_HARDWARE_CURSORS = "1";
 
     # With Sway 1.12+, this silences NVIDIA warning.:wq
     SWAY_UNSUPPORTED_GPU = "1";
@@ -201,6 +205,18 @@
     extraGroups = [ "wheel" "networkmanager" ];
     # packages = with pkgs; [ ];
   };
+
+  systemd.user.services.kanshi = {
+    description = "Autoconfigure outputs using kanshi";
+    wantedBy = [ "graphical-session.target" ];
+    partOf = [ "graphical-session.target" ];
+    serviceConfig = {
+      # This points to your config file. %h expands to the user's home directory.
+      ExecStart = "${pkgs.kanshi}/bin/kanshi -c %h/.config/kanshi/config";
+      Restart = "always";
+    };
+  };
+
 
   # Copy the NixOS configuration file and link it from the resulting system
   # (/run/current-system/configuration.nix). This is useful in case you

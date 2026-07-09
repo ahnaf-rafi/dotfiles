@@ -1,0 +1,35 @@
+output "Lenovo Group Limited B160UAN06.N  Unknown" {
+  mode 1920x1200@60.0960
+  scale 1.00
+  alias $LEONARD
+}
+
+output "Dell Inc. DELL U2913WM 5YD8C42S539L" {
+  mode 2560x1080@60.0000
+  scale 1.00
+  alias $WORK
+}
+
+output "Dell Inc. DELL S2725DSM 72GYFD4" {
+  mode 2560x1440@59.9510
+  scale 1.00
+  alias $NIGEL1
+}
+
+output "Dell Inc. DELL S2725DS 3BD1X14" {
+  mode 2560x1440@59.9510
+  scale 1.00
+  alias $NIGEL2
+}
+
+profile home {
+  output $NIGEL1 enable position 2560,0
+  output $NIGEL2 enable position 0,0
+  exec ~/bin/setup_sway_workspaces.sh "Dell Inc. DELL S2725DSM 72GYFD4" "Dell Inc. DELL S2725DS 3BD1X14"
+}
+
+profile work {
+  output $LEONARD enable position 0,0
+  output $WORK enable position 1920,0
+  exec ~/bin/setup_sway_workspaces.sh "Lenovo Group Limited B160UAN06.N  Unknown" "Dell Inc. DELL U2913WM 5YD8C42S539L"
+}
