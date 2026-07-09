@@ -56,8 +56,7 @@
     # Modesetting is needed to fix TTY hang and is required for Wayland.
     modesetting.enable = true;
 
-    # Set to false to use the proprietary closed-source driver, which is
-    # currently the most stable option.
+    # Use the open source driver for newer Nvidia architectures.
     open = true;
 
     # Enable the NVIDIA settings menu
