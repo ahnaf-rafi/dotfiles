@@ -142,7 +142,8 @@
     vim-full
     git
     curl
-    kitty
+    zip
+    unzip
     stow
     fzf
     fd
@@ -152,6 +153,7 @@
     rclone
 
     # GUI software
+    kitty
     mission-center
     dropbox
     pulseaudio
