@@ -14,7 +14,7 @@ alias fcd='cd $(fd --type directory | fzf)'
 alias julia='julia --project=@.'
 
 alias ngc='sudo nix-env --delete-generations +3 --profile /nix/var/nix/profiles/system; sudo nix-collect-garbage -d'
-alias nrs='sudo nixos-rebuild switch --flake'
+alias nrs='CWD=$(pwd); cd ~/dotfiles; sudo nixos-rebuild switch --flake; cd $CWD'
 
 # Dealing with dotfiles.
 export DOTSDIR=$HOME/dotfiles

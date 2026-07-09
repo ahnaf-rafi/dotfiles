@@ -205,18 +205,6 @@
     # packages = with pkgs; [ ];
   };
 
-  systemd.user.services.kanshi = {
-    description = "Autoconfigure outputs using kanshi";
-    wantedBy = [ "graphical-session.target" ];
-    partOf = [ "graphical-session.target" ];
-    serviceConfig = {
-      # This points to your config file. %h expands to the user's home directory.
-      ExecStart = "${pkgs.kanshi}/bin/kanshi -c %h/.config/kanshi/config";
-      Restart = "always";
-    };
-  };
-
-
   # Copy the NixOS configuration file and link it from the resulting system
   # (/run/current-system/configuration.nix). This is useful in case you
   # accidentally delete configuration.nix.

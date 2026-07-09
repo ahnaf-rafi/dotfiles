@@ -37,6 +37,8 @@ font pango:JetBrainsMono Nerd Font 12px
 exec --no-startup-id nm-applet --indicator
 # System tray indicator for Blueman (bluetooth manager).
 exec --no-startup-id blueman-applet
+# Configure monitors using kanshi.
+exec_always --no-startup-id kanshi
 # Mako for desktop notifications.
 exec --no-startup-id mako
 # Dropbox.
