@@ -31,6 +31,8 @@
   # Allow proprietary packages (needed for most Wi-Fi firmware)
   nixpkgs.config.allowUnfree = true;
 
+  programs.nix-ld.enable = true;
+
   #-------------#
   # Boot loader #
   #-------------#
