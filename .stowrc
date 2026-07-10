@@ -12,3 +12,4 @@
 --ignore=^flake.lock
 --ignore=^\.config/emacs/ar-emacs\.org
 --ignore=^\.config/emacs/.*\.org
+--ignore=^.*tmp.*
