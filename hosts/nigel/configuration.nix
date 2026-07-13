@@ -49,7 +49,7 @@
   # Use NetworkManager (nmcli or nmtui) for configuring network connections.
   networking.networkmanager = {
     enable = true;
-    wifi.backend = "iwd";
+    wifi.backend = "wpa_supplicant";
   };
 
   # Set your time zone.
