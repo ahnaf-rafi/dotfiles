@@ -196,17 +196,6 @@
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
 
-  #---------------#
-  # User accounts #
-  #---------------#
-  # Don't forget to set a password with ‘passwd’.
-  users.users.ahnaf = {
-    isNormalUser = true;
-    shell = pkgs.bashInteractive;
-    extraGroups = [ "wheel" "networkmanager" ];
-    # packages = with pkgs; [ ];
-  };
-
   # Copy the NixOS configuration file and link it from the resulting system
   # (/run/current-system/configuration.nix). This is useful in case you
   # accidentally delete configuration.nix.
