@@ -27,11 +27,14 @@
     ../../modules/common/ssh.nix
     # Fonts
     ../../modules/common/fonts.nix
-    # Core cli packages and configs
-    ../../modules/common/core-cli-pkgs.nix
-    # Core gui packages and configs
-    ../../modules/common/core-gui-pkgs.nix
+    # Common core cli packages and configs
+    ../../modules/common/core-cli.nix
+    # Common core gui packages and configs
+    ../../modules/common/core-gui.nix
+    # NixOS-specific core gui packages and configs
+    ../../modules/nixos/core-gui.nix
     # Extra package configs
+    ../../modules/common/hunspell.nix
     ../../modules/common/tex.nix
     ../../modules/common/R.nix
     ../../modules/common/RStudio.nix
