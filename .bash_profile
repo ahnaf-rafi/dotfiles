@@ -10,7 +10,6 @@ eval "$(fzf --bash)"
 export PATH=$HOME/.local/bin:$HOME/bin:$PATH
 
 export H=$HOME
-export XDG_CURRENT_DESKTOP=sway
 export XDG_CONFIG_HOME=$HOME/.config
 export XDG_CACHE_HOME=$HOME/.cache
 export XDG_DATA_HOME=$HOME/.local/share
@@ -42,7 +41,10 @@ fi
 if [ -z "$WAYLAND_DISPLAY" ] && [ -n "$XDG_VTNR" ] && [ "$XDG_VTNR" -eq 1 ] ; then
   export XDG_SESSION_TYPE=wayland
   export XDG_CURRENT_DESKTOP=sway
-  export SWAY_UNSUPPORTED_GPU=1
+  # Check if an NVIDIA GPU is present
+  if lspci | grep -iE 'vga|3d|display' | grep -iq nvidia; then
+    export SWAY_UNSUPPORTED_GPU=1
+  fi
   sway
 fi
 
