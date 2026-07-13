@@ -1,13 +1,37 @@
-# Edit this configuration file to define what should be installed on
-# your system. Help is available in the configuration.nix(5) man page, on
-# https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
-
 { config, pkgs, lib, inputs, ... }:
 
 {
   imports = [
     ./hardware-configuration.nix
+    # Overlays
     ../../modules/common/nixpkgs-overlays.nix
+    # Nix settings
+    ../../modules/common/nix-settings.nix
+    # Boot setup
+    ../../modules/nixos/boot.nix
+    # Allow proprietary firmware
+    ../../modules/nixos/proprietary-firmware.nix
+    # Nvidia
+    ../../modules/nixos/nvidia.nix
+    # Bluetooth setup
+    ../../modules/nixos/bluetooth.nix
+    # Audio
+    ../../modules/nixos/audio.nix
+    # Window management
+    ../../modules/nixos/sway.nix
+    # User setup
+    ../../modules/nixos/user-ahnaf.nix
+    # Use nix-ld
+    ../../modules/nixos/nix-ld.nix
+    # Enable ssh
+    ../../modules/common/ssh.nix
+    # Fonts
+    ../../modules/common/fonts.nix
+    # Core cli packages and configs
+    ../../modules/common/core-cli-pkgs.nix
+    # Core gui packages and configs
+    ../../modules/common/core-gui-pkgs.nix
+    # Extra package configs
     ../../modules/common/tex.nix
     ../../modules/common/R.nix
     ../../modules/common/RStudio.nix
@@ -15,65 +39,6 @@
     ../../modules/common/emacs.nix
     ../../modules/nixos/emacsclient.nix
   ];
-
-  #--------------#
-  # Nix settings #
-  #--------------#
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
-
-  # Keep up to three generations
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-    options =  "--delete-older-than +3";
-  };
-
-  # Allow proprietary packages (needed for most Wi-Fi firmware)
-  nixpkgs.config.allowUnfree = true;
-
-  programs.nix-ld.enable = true;
-
-  #-------------#
-  # Boot loader #
-  #-------------#
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-  # Show three generations: 3 gens plus option to reboot to firmware.
-  boot.loader.systemd-boot.configurationLimit = 4;
-
-  #-------------------#
-  # Hardware settings #
-  #-------------------#
-
-  # Include proprietary firmware for Wi-Fi, Bluetooth, etc.
-  hardware.enableRedistributableFirmware = true;
-
-  # Enable graphics support (replaces hardware.opengl in newer NixOS versions)
-  hardware.graphics.enable = true;
-
-  # Tell X11/Wayland to use the nvidia driver
-  services.xserver.videoDrivers = [ "nvidia" ];
-
-  hardware.nvidia = {
-    # Modesetting is needed to fix TTY hang and is required for Wayland.
-    modesetting.enable = true;
-
-    # Use the open source driver for newer Nvidia architectures.
-    open = true;
-
-    # Enable the NVIDIA settings menu
-    nvidiaSettings = true;
-
-    # Select the appropriate driver version
-    package = config.boot.kernelPackages.nvidiaPackages.stable;
-  };
-
-  hardware.bluetooth = {
-    enable = true;
-    powerOnBoot = true;
-  };
-
-  services.blueman.enable = true;
 
   #------------#
   # Networking #
@@ -90,88 +55,9 @@
   # Set your time zone.
   time.timeZone = "America/New_York";
 
-  #-------#
-  # Audio #
-  #-------#
-
-  services.pulseaudio.enable = false;
-
-  security.rtkit.enable = true;
-
-  # Enable pipewire.
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-  };
-
-  #----------------------#
-  # Window manager: sway #
-  #----------------------#
-  programs.sway = {
-    enable = true;
-    xwayland.enable = true;
-    wrapperFeatures.gtk = true;
-    extraPackages = with pkgs; [
-      swaylock
-      swayidle
-      foot
-      waybar
-      rofi
-      xdg-desktop-portal-wlr
-      mako
-    ];
-  };
-
-  xdg.portal = {
-    enable = true;
-    wlr.enable = true;
-    extraPortals = [ pkgs.xdg-desktop-portal-wlr ];
-  };
-
-  #----------#
-  # Packages #
-  #----------#
-  programs.firefox.enable = true;
-  programs.bash.enable = true;
-  programs.neovim.enable = true;
-
-  environment.systemPackages = with pkgs; [
-    # CLI software
-    vim-full
-    git
-    curl
-    zip
-    unzip
-    stow
-    fzf
-    fd
-    ripgrep
-    delta
-    htop
-    pciutils
-    rclone
-
-    # GUI software
-    kitty
-    mission-center
-    dropbox
-    pulseaudio
-    pavucontrol
-    networkmanagerapplet
-    wl-clipboard
-    kanshi
-    grim
-    flameshot
-    google-chrome
-    proton-vpn
-    zathura
-    libreoffice
-    hunspell
-    hunspellDicts.en_US-large
-    goldendict-ng
-  ];
+  #--------------------------------#
+  # Extras for sway window manager #
+  #--------------------------------#
 
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";
@@ -179,22 +65,9 @@
     # Essential for Sway to not crash with the proprietary NVIDIA driver.
     WLR_NO_HARDWARE_CURSORS = "1";
 
-    # With Sway 1.12+, this silences NVIDIA warning.:wq
+    # With Sway 1.12+, this silences NVIDIA warning.
     SWAY_UNSUPPORTED_GPU = "1";
   };
-
-  fonts.packages = with pkgs; [
-    nerd-fonts.jetbrains-mono
-    nerd-fonts.symbols-only
-    julia-mono
-  ];
-
-  #------------------------#
-  # Services to be enabled #
-  #------------------------#
-
-  # Enable the OpenSSH daemon.
-  services.openssh.enable = true;
 
   # Copy the NixOS configuration file and link it from the resulting system
   # (/run/current-system/configuration.nix). This is useful in case you
@@ -222,5 +95,4 @@
   # For more information, see `man configuration.nix` or
   # https://nixos.org/manual/nixos/stable/options#opt-system.stateVersion .
   system.stateVersion = "26.05"; # Did you read the comment?
-
 }
