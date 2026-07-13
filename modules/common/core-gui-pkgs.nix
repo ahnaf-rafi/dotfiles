@@ -1,4 +1,4 @@
-{ config, pkgs, lib, inputs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   programs.firefox.enable = true;
@@ -8,7 +8,6 @@
     kitty
     mission-center
     dropbox
-    networkmanagerapplet
     wl-clipboard
     kanshi
     grim

@@ -13,6 +13,8 @@
     ../../modules/nixos/proprietary-firmware.nix
     # Nvidia
     ../../modules/nixos/nvidia.nix
+    # Network manager setup
+    ../../modules/nixos/networkmanager.nix
     # Bluetooth setup
     ../../modules/nixos/bluetooth.nix
     # Audio
@@ -45,12 +47,6 @@
   #------------#
   # Hostname.
   networking.hostName = "nigel";
-
-  # Use NetworkManager (nmcli or nmtui) for configuring network connections.
-  networking.networkmanager = {
-    enable = true;
-    wifi.backend = "wpa_supplicant";
-  };
 
   # Set your time zone.
   time.timeZone = "America/New_York";

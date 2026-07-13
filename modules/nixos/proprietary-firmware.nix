@@ -1,4 +1,4 @@
-{ config, pkgs, lib, inputs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   # Include proprietary firmware for Wi-Fi, Bluetooth, etc.

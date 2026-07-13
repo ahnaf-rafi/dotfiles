@@ -1,4 +1,4 @@
-{ config, pkgs, lib, inputs, ... }:
+{ config, pkgs, lib, ... }:
 
 {
   # Enable graphics support (replaces hardware.opengl in newer NixOS versions)
