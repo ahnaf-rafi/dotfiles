@@ -10,7 +10,7 @@
     emacs-overlay.url = "github:nix-community/emacs-overlay";
   };
 
-  outputs = { self, nixpkgs, emacs-overlay, ... }@inputs: {
+  outputs = { self, nixpkgs, nixpkgs-unstable, emacs-overlay, ... }@inputs: {
     nixosConfigurations = {
       nigel = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
