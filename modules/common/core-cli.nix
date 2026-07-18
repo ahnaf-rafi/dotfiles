@@ -6,7 +6,6 @@
   programs.neovim.enable = true;
 
   environment.systemPackages = with pkgs; [
-    # CLI software
     vim-full
     git
     curl

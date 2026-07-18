@@ -19,6 +19,8 @@
     ../../modules/nixos/audio.nix
     # Window management
     ../../modules/nixos/sway.nix
+    # Laptop-specific settings
+    ../../modules/nixos/laptop.nix
     # User setup
     ../../modules/nixos/user-ahnaf.nix
     # Use nix-ld
