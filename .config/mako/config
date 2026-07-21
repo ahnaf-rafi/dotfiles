@@ -1,0 +1,3 @@
+# Map a middle-click to pull up the action menu for the notification
+on-button-middle=exec makoctl menu -n "$id" -- rofi -dmenu -p "Bluetooth Option"
+layer=overlay
