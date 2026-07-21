@@ -9,6 +9,7 @@
     vim-full
     git
     curl
+    openssl
     zip
     unzip
     stow
