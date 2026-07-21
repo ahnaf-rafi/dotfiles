@@ -31,5 +31,5 @@ profile home {
 profile work {
   output $LEONARD enable position 0,0
   output $WORK enable position 1920,0
-  exec ~/bin/setup_sway_workspaces.sh "Lenovo Group Limited B160UAN06.N  Unknown" "Dell Inc. DELL U2913WM 5YD8C42S539L"
+  exec ~/bin/setup_sway_workspaces.sh "Dell Inc. DELL U2913WM 5YD8C42S539L" "Lenovo Group Limited B160UAN06.N  Unknown"
 }
