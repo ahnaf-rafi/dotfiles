@@ -33,6 +33,7 @@ in
     tree-sitter-toml
     tree-sitter-nix
     tree-sitter-julia
+    tree-sitter-latex
     tree-sitter-typst
     tree-sitter-markdown
     tree-sitter-python
