@@ -5,6 +5,33 @@ the Fedora Everything ISO from
 [[https://fedoraproject.org/misc/][https://fedoraproject.org/misc/]].
 Nothing beyond the "Fedora Custom Operating System" option is assumed.
 
+* TODO Repository structure
+#+begin_src sh
+~dotfiles/
+├── bootstrap.sh
+├── .config/       # Stowed; ~/.config/<app>/<symlinks>
+├── .git/
+├── .vim/          # Stowed; ~/.vim/<symlinks>
+├── bin/           # Stowed; ~/bin/<symlinks>
+├── packages/
+│   ├── common.txt
+│   ├── hyprland.txt
+│   ├── nvidia.txt
+│   └── work.txt
+├── wallpapers/    # Stowed; ~/wallpapers/<symlinks>
+├── .bashrc        # Symlinked to ~/.bashrc
+├── .bash_aliases  # Symlinked to ~/.bash_aliases
+├── .bash_logout   # Symlinked to ~/.bash_logout
+├── .bash_profile  # Symlinked to ~/.bash_profile
+├── .gitignore
+├── .stowrc
+├── LICENSE
+└── README.org
+#+end_src
+
+* TODO Bootstrap
+* TODO Stow
+
 * Flash ISO onto USB device
 Identify the USB device:
 #+begin_src sh
@@ -106,4 +133,13 @@ Find the ~PasswordAuthentication~ line and set ~PasswordAuthentication no~.
 Then, restart the SSH daemon:
 #+begin_src sh
 sudo systemctl restart sshd
+#+end_src
+
+* Setting hostname
+The Fedora Everything installer allows you to set hostname: there should be a
+section of the form "Network & Host Name".
+If you are opting to set the hostname after the installation, you can set it
+using:
+#+begin_src sh
+sudo hostnamectl set-hostname your_hostname
 #+end_src
