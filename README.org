@@ -1,0 +1,24 @@
+#+title: Ahnaf Rafi's Dotfiles
+
+These dotfiles take as base a minimal installation of Fedore Linux using
+the [[https://fedoraproject.org/misc/#everything][Fedora Everything]] ISO.
+
+* Flashing the USB device
+Identify the USB device:
+#+begin_src sh
+lsblk -o NAME,SIZE,MODEL,TRAN,MOUNTPOINTS
+#+end_src
+Suppose the USB is ~/dev/sdX~.
+Use the whole disk, not a partition like ~/dev/sdX1~.
+First unmount the device and then flash to it.
+#+begin_src sh
+sudo umount /dev/sdX?* 2>/dev/null
+
+sudo dd if=/path/to/FedorEverything.iso of=/dev/sdX bs=4M status=progress oflag=sync
+sync
+#+end_src
+
+Safely eject the USB device:
+#+begin_src sh
+sudo eject /dev/sdX
+#+end_src
