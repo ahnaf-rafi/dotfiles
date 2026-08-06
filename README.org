@@ -1,9 +1,11 @@
 #+title: Ahnaf Rafi's Dotfiles
 
 These dotfiles take as base a minimal installation of Fedore Linux using
-the [[https://fedoraproject.org/misc/#everything][Fedora Everything]] ISO.
+the Fedora Everything ISO from
+[[https://fedoraproject.org/misc/][https://fedoraproject.org/misc/]].
+Nothing beyond the "Fedora Custom Operating System" option is assumed.
 
-* Flashing the USB device
+* Flash ISO onto USB device
 Identify the USB device:
 #+begin_src sh
 lsblk -o NAME,SIZE,MODEL,TRAN,MOUNTPOINTS
@@ -13,12 +15,95 @@ Use the whole disk, not a partition like ~/dev/sdX1~.
 First unmount the device and then flash to it.
 #+begin_src sh
 sudo umount /dev/sdX?* 2>/dev/null
-
-sudo dd if=/path/to/FedorEverything.iso of=/dev/sdX bs=4M status=progress oflag=sync
+sudo dd if=/path/to/FedorEverything.iso of=/dev/sdX \
+  bs=4M status=progress oflag=sync
 sync
 #+end_src
-
 Safely eject the USB device:
 #+begin_src sh
 sudo eject /dev/sdX
+#+end_src
+
+* SSH from another machine.
+** Initial SSH with password
+Check that the SSH daemon is running:
+#+begin_src sh
+sudo systemctl status sshd
+#+end_src
+Enable it if not:
+#+begin_src sh
+sudo systemctl enable --now sshd
+#+end_src
+Check that the firewall daemon is running:
+#+begin_src sh
+sudo systemctl status firewalld
+#+end_src
+Ensure that the SSH service is allowed by the firewall daemon:
+#+begin_src sh
+sudo firewall-cmd --permanent --add-service=ssh
+sudo firewall-cmd --reload
+#+end_src
+Check that password login from SSH is allowed:
+#+begin_src sh
+sudo cat /etc/ssh/sshd_config | grep PasswordAuthentication
+#+end_src
+If the line is commented out (likely), edit it with nano using
+~sudo nano /etc/ssh/sshd_config~.
+Uncomment the line and then set it to ~PasswordAuthentication yes~.
+Then, restart the SSH daemon:
+#+begin_src sh
+sudo systemctl restart sshd
+#+end_src
+
+Make sure your user has a password set:
+#+begin_src sh
+sudo passwd your_username
+#+end_src
+Get the system IP address (look for the wlan0 or ethernet interface):
+#+begin_src sh
+ip -brief addr show
+#+end_src
+On your client machine, you can now connect to the host using the IP address you
+just found:
+#+begin_src sh
+ssh your_username@ip-address
+#+end_src
+
+** Switch to key-based SSH login, with password-based login disabled.
+Password-based SSH login is not safe (can be open to brute force attack).
+As such, it is a good idea to set up ssh keys.
+First, you can check if you have any existing ssh keys:
+#+begin_src sh
+ls -al ~/.ssh
+#+end_src
+If you see for example ~id_ed25519.pub~, ~id_rsa.pub~, or ~id_ecdsa.pub~, then
+you can skip the steps to generate the key.
+If no keys exist, generate a SSH key on your local machine (not the the newly
+installed Fedora system) with:
+#+begin_src sh
+ssh-keygen -t ed25519 -C "your_email@example.com"
+#+end_src
+Go through the steps.
+Next, use the ~ssh-copy-id~ tool to copy the local key to the newly installed
+Fedora system by running the following from the local machine:
+#+begin_src sh
+ssh-copy-id your_username@fedora_server_ip
+#+end_src
+You will need to enter your user password one last time when prompted to
+authorize the transfer.
+Once this is done, test the connection from your local machine:
+#+begin_src sh
+ssh your_username@fedora_server_ip
+#+end_src
+It should log you in instantly without asking.
+
+Once you confirm your SSH key works, disable password entry entirely
+to stop brute-force attacks:
+#+begin_src sh
+sudo nano /etc/ssh/sshd_config
+#+end_src
+Find the ~PasswordAuthentication~ line and set ~PasswordAuthentication no~.
+Then, restart the SSH daemon:
+#+begin_src sh
+sudo systemctl restart sshd
 #+end_src
