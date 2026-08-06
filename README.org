@@ -30,6 +30,20 @@ Nothing beyond the "Fedora Custom Operating System" option is assumed.
 #+end_src
 
 * TODO Bootstrap
+#+begin_src sh
+mkdir -p ~/.dotfiles-backup
+
+mv ~/.bashrc ~/.dotfiles-backup/ 2>/dev/null || true
+mv ~/.bash_profile ~/.dotfiles-backup/ 2>/dev/null || true
+mv ~/.bash_logout ~/.dotfiles-backup/ 2>/dev/null || true
+#+end_src
+
+#+begin_src sh
+sudo dnf install -y git
+git clone <repository-url> ~/dotfiles
+cd ~/dotfiles
+#+end_src
+
 * TODO Stow
 
 * Flash ISO onto USB device
@@ -72,13 +86,13 @@ sudo firewall-cmd --reload
 #+end_src
 Check that password login from SSH is allowed:
 #+begin_src sh
-sudo cat /etc/ssh/sshd_config | grep PasswordAuthentication
+sudo sshd -T | grep '^passwordauthentication'
 #+end_src
-If the line is commented out (likely), edit it with nano using
-~sudo nano /etc/ssh/sshd_config~.
-Uncomment the line and then set it to ~PasswordAuthentication yes~.
-Then, restart the SSH daemon:
+Allow password login by doing ~sudoedit /etc/ssh/sshd_config.d/10-local.conf~
+and add the line ~PasswordAuthentication yes~.
+Then validate and restart:
 #+begin_src sh
+sudo sshd -t
 sudo systemctl restart sshd
 #+end_src
 
@@ -125,11 +139,8 @@ ssh your_username@fedora_server_ip
 It should log you in instantly without asking.
 
 Once you confirm your SSH key works, disable password entry entirely
-to stop brute-force attacks:
-#+begin_src sh
-sudo nano /etc/ssh/sshd_config
-#+end_src
-Find the ~PasswordAuthentication~ line and set ~PasswordAuthentication no~.
+to stop brute-force attacks: ~sudoedit /etc/ssh/sshd_config.d/10-local.conf~
+and set ~PasswordAuthentication no~.
 Then, restart the SSH daemon:
 #+begin_src sh
 sudo systemctl restart sshd
