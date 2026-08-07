@@ -1,0 +1,210 @@
+#+title: Ahnaf's installation instructions for Fedora Everything Minimal
+
+Here, I record installation steps based on a minimal installation of Fedora
+Linux using the Fedora Everything ISO from
+[[https://fedoraproject.org/misc/][https://fedoraproject.org/misc/]].
+Nothing is assumed beyond "Fedora Custom Operating System" with "Standard" and
+"NetworkManager Modules" selected.
+
+* Flash ISO onto USB device
+Identify the USB device:
+#+begin_src sh
+lsblk -o NAME,SIZE,MODEL,TRAN,MOUNTPOINTS
+#+end_src
+Suppose the USB is ~/dev/sdX~.
+Use the whole disk, not a partition like ~/dev/sdX1~.
+First unmount the device and then flash to it.
+#+begin_src sh
+sudo umount /dev/sdX?* 2>/dev/null
+sudo dd if=/path/to/FedorEverything.iso of=/dev/sdX \
+  bs=4M status=progress oflag=sync
+sync
+#+end_src
+Safely eject the USB device:
+#+begin_src sh
+sudo eject /dev/sdX
+#+end_src
+Use this to install Fedora Linux.
+In the next section, I describe how one can set up the remainder of the system
+via SSH assuming that base Fedora Linux has been installed, with a normal
+(non-root) user with a password.
+This is useful if one has another machine with a more "comfy" setup than the
+bare-bones command line.
+
+* SSH from another machine.
+** Initial SSH with password
+Check that the SSH daemon is running:
+#+begin_src sh
+sudo systemctl status sshd
+#+end_src
+Enable it if not:
+#+begin_src sh
+sudo systemctl enable --now sshd
+#+end_src
+Check that the firewall daemon is running:
+#+begin_src sh
+sudo systemctl status firewalld
+#+end_src
+Ensure that the SSH service is allowed by the firewall daemon:
+#+begin_src sh
+sudo firewall-cmd --permanent --add-service=ssh
+sudo firewall-cmd --reload
+#+end_src
+Check that password login from SSH is allowed:
+#+begin_src sh
+sudo sshd -T | grep '^passwordauthentication'
+#+end_src
+Allow password login by doing ~sudoedit /etc/ssh/sshd_config.d/10-local.conf~
+and add the line ~PasswordAuthentication yes~.
+Then validate and restart:
+#+begin_src sh
+sudo sshd -t
+sudo systemctl restart sshd
+#+end_src
+
+Make sure your user has a password set:
+#+begin_src sh
+sudo passwd your_username
+#+end_src
+Get the system IP address (look for the wlan0 or ethernet interface):
+#+begin_src sh
+ip -brief addr show
+#+end_src
+On your client machine, you can now connect to the host using the IP address you
+just found:
+#+begin_src sh
+ssh your_username@ip-address
+#+end_src
+
+** Switch to key-based SSH login, with password-based login disabled.
+Password-based SSH login is not safe (can be open to brute force attack).
+As such, it is a good idea to set up ssh keys.
+First, you can check if you have any existing ssh keys:
+#+begin_src sh
+ls -al ~/.ssh
+#+end_src
+If you see for example ~id_ed25519.pub~, ~id_rsa.pub~, or ~id_ecdsa.pub~, then
+you can skip the steps to generate the key.
+If no keys exist, generate a SSH key on your local machine (not the the newly
+installed Fedora system) with:
+#+begin_src sh
+ssh-keygen -t ed25519 -C "your_email@example.com"
+#+end_src
+Go through the steps.
+Next, use the ~ssh-copy-id~ tool to copy the local key to the newly installed
+Fedora system by running the following from the local machine:
+#+begin_src sh
+ssh-copy-id your_username@fedora_server_ip
+#+end_src
+You will need to enter your user password one last time when prompted to
+authorize the transfer.
+Once this is done, test the connection from your local machine:
+#+begin_src sh
+ssh your_username@fedora_server_ip
+#+end_src
+It should log you in instantly without asking.
+
+Once you confirm your SSH key works, disable password entry entirely
+to stop brute-force attacks: ~sudoedit /etc/ssh/sshd_config.d/10-local.conf~
+and set ~PasswordAuthentication no~.
+Then, restart the SSH daemon:
+#+begin_src sh
+sudo systemctl restart sshd
+#+end_src
+
+* Setting hostname
+The Fedora Everything installer allows you to set hostname: there should be a
+section of the form "Network & Host Name".
+If you are opting to set the hostname after the installation, you can set it
+using:
+#+begin_src sh
+sudo hostnamectl set-hostname your_hostname
+#+end_src
+
+* TODO Chroot
+* Add RPM Fusion
+#+begin_src sh
+sudo dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+#+end_src
+
+* Install basic software
+#+begin_src sh
+sudo dnf5 install -y \
+     dnf-plugins-core coreutils stow git git-delta zip unzip which tar \
+     gcc make cmake autoconf automake fzf ripgrep fd-find bat \
+     neovim python3-neovim
+#+end_src
+
+* Non-server machines
+#+begin_src sh
+sudo dnf5 install -y \
+     @hardware-support pciutils usbutils \
+     NetworkManager-wifi network-manager-applet \
+     bluez blueman pipewire wireplumber pipewire-alsa pipewire-pulseaudio \
+     alsa-utils pavucontrol
+#+end_src
+
+* TODO Fonts
+#+begin_src sh
+sudo dnf5 install -y \
+     adwaita-icon-theme adwaita-fonts-all liberation-fonts \
+     google-noto-sans-fonts google-noto-color-emoji-fonts
+#+end_src
+
+* Browsers
+#+begin_src sh
+sudo dnf config-manager addrepo --from-repofile=https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
+sudo dnf install brave-browser
+#+end_src
+Use this to install Google Chrome if you want lol.
+
+* Nvidia
+#+begin_src sh
+sudo dnf5 install -y akmod-nvidia
+#+end_src
+
+* TODO Laptop power
+#+begin_src
+sudo dnf5 install -y tlp tlp-pd tlp-rdw
+#+end_src
+
+* TODO Hyprland
+#+begin_src sh
+dnf copr enable lionheartp/Hyprland
+
+sudo dnf5 install -y \
+     hyprland hyprland-guiutils hyprcursor hyprpolkitagent hyprlauncher rofi \
+     xdg-desktop-portal-hyprland xdg-desktop-portal \
+     kitty foot waybar mako pcmanfm
+
+# TODO: check more of the packages in https://copr.fedorainfracloud.org/coprs/lionheartp/Hyprland/packages/
+# Figure out what needs to be installed
+# hypridle
+# hyprgraphics
+# hyprland-plugins hyprland-contrib
+#+end_src
+
+* TODO Network manager
+
+* TODO Dev stuff
+#+begin_src sh
+sudo dnf5 install -y texlive-scheme-full \
+     libtool libvterm
+#+end_src
+
+* Emacs
+I am using Emacs 31 for now (to avoid tree-sitter conflicts with Neovim 0.12).
+#+begin_src sh
+sudo dnf copr enable alternateved/bleeding-emacs
+# By default, the above copr repo installs emacs with PGTK support.
+sudo dnf install emacs
+#+end_src
+
+* Additional GUI apps from Fedora/RPMFusion/COPR Repos
+#+begin_src sh
+sudo dnf5 install -y \
+     vim-X11 zathura zathura-pdf-mupdf zathura-djvu zathura-ps
+#+end_src
+
+* TODO Zoom, Dropbox
+These need to be installed directly from the provider.
