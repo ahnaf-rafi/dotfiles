@@ -1,2 +1,5 @@
 # Temporary files and directories.
 *tmp*
+
+# Neovim spell list binaries.
+*.add.spl
