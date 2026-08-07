@@ -1,0 +1,14 @@
+configuration {
+  modes: "window,drun,run,ssh";
+  font: "JetBrainsMono Nerd Font 16";
+  timeout {
+      action: "kb-cancel";
+      delay:  0;
+  }
+  filebrowser {
+      directories-first: true;
+      sorting-method:    "name";
+  }
+}
+
+@theme "gruvbox-dark-soft"
