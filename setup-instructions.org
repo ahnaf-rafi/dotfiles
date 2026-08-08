@@ -173,15 +173,16 @@ sudo dnf5 install -y tlp tlp-pd tlp-rdw
 dnf copr enable lionheartp/Hyprland
 
 sudo dnf5 install -y \
-     hyprland hyprland-guiutils hyprcursor hyprpaper hyprpolkitagent rofi \
+     hyprland hyprland-guiutils hyprshutdown hyprpaper hyprpolkitagent rofi \
      xdg-desktop-portal-hyprland xdg-desktop-portal \
-     kitty foot waybar mako pcmanfm
+     kitty foot waybar mako nautilus
 
 # TODO: check more of the packages in https://copr.fedorainfracloud.org/coprs/lionheartp/Hyprland/packages/
 # Figure out what needs to be installed
 # hypridle
 # hyprgraphics
-# hyprland-plugins hyprland-contrib
+# hyprland-plugins
+# hyprland-contrib
 #+end_src
 
 * TODO Network manager
