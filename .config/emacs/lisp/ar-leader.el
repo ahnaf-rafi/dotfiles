@@ -7,7 +7,7 @@
 ;; Created: 2026-02-20
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "27.1"))
-;; Keywords: convenience, keybindings, evil
+;; Keywords: convenience, keybindings, leader, evil
 ;; URL: https://github.com/ahnaf-rafi/dotfiles
 ;;
 ;; SPDX-License-Identifier: MIT

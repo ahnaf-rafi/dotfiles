@@ -27,8 +27,7 @@
   (setq hl-todo-keyword-faces
         '(;; For reminders to change or add something at a later date.
           ("TODO" warning bold)
-          ;; For code (or code paths) that are broken, unimplemented, or slow,
-          ;; and may become bigger problems later.
+          ;; For code that has incomplete or is missing documentation.
           ("DOC" warning bold)
           ;; For code (or code paths) that are broken, unimplemented, or slow,
           ;; and may become bigger problems later.

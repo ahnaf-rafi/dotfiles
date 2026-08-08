@@ -4,10 +4,10 @@
 #+startup: overview
 #+todo: TODO(t) DOC(o) | DONE(d)
 
-* How this configuration works
+* DOC How this configuration works
 When ~ar-emacs.org~ is changed and saved, its Emacs Lisp (~elisp~) source code
-block get tangled (written) to ~early-init.el~ or ~init.el~.
-These source files are symlinked to ~$HOME/.emacs.d~ by ~stow~.
+block get tangled (written) to ~early-init.el~, ~init.el~ or ~elisp~ files in
+the ~lisp/~ subdirectory.
 The automatic tangling is done using a local hook; the end of ~init.org~ (see
 bottom of raw file) has the following comment block:
 #+begin_src org :tangle no
@@ -15,11 +15,18 @@ bottom of raw file) has the following comment block:
 # eval: (add-hook 'after-save-hook #'org-babel-tangle nil t)
 # End:
 #+end_src
+These source files are symlinked to ~$HOME/.config/emacs/~ by running ~stow~
+from ~$HOME/dotfiles/~.
+The ~dotfiles/.stowrc~ file explicitly ignores the present ~org~ file
+(~dotfiles/.config/emacs/ar-emacs.org~).
 
 *NOTE:*
 - Any section marked with "DOC" is in need of better documentation.
 - Any section marked with "TODO" is likely working, but has incomplete
   configuration and/or needs refactoring.
+- If any changes involve the creation of new ~elisp~ files required in
+  ~early-init.el~ or ~init.el~, ~stow~ must be run from ~$HOME/dotfiles/~ again
+  to ensure that the associated symlink in ~$HOME/.config/emacs/~ appears.
 
 * The ~early-init.el~ file
 :PROPERTIES:
@@ -173,11 +180,6 @@ and not the built-in ~package.el~.
 So I disable ~package.el~ here.
 #+begin_src emacs-lisp
 (setq package-enable-at-startup nil)
-#+end_src
-
-#+begin_src emacs-lisp :tangle no
-;; TODO: Remove please.
-(which-key-add-keymap-based-replacements org-mode-map "SPC m t" "toggle")
 #+end_src
 
 ** Add configuration lisp modules/libraries to ~load-path~
@@ -356,7 +358,7 @@ Thus, I set it to store these temporary settings, and load them.
 :END:
 
 In this section, code blocks are tangled to ~lisp/ar-packages.el~.
-This is required in ~init.el~ using the following code block.
+This library is required in ~init.el~ using the following code block.
 #+begin_src emacs-lisp :tangle init.el
 (require 'ar-packages)
 #+end_src
@@ -378,7 +380,6 @@ The following code block
 Here is the code snippet to bootstrap Elpaca (copied directly from the GitHub
 repo).
 #+begin_src emacs-lisp
-(setq elpaca-core-date '(20260605))
 (defvar elpaca-installer-version 0.12)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
@@ -459,7 +460,7 @@ is called by the user.
 :END:
 
 In this section, code blocks are tangled to ~lisp/ar-visuals.el~.
-This is required in ~init.el~ using the following code block.
+This library is required in ~init.el~ using the following code block.
 #+begin_src emacs-lisp :padline no :tangle init.el
 (require 'ar-visuals)
 #+end_src
@@ -476,6 +477,7 @@ I use the ~JuliaMono~ font.
 (add-to-list 'default-frame-alist '(font . "JuliaMono-12"))
 (set-face-attribute 'default nil :font "JuliaMono-12")
 #+end_src
+
 ** Theme
 I set a variable called ~ar/use-dark-theme~ which tells Emacs whether a dark or
 light theme will be used.
@@ -484,7 +486,7 @@ light theme will be used.
   "Use dark theme if `t' otherwise, use light theme")
 #+end_src
 I like the [[https://protesilaos.com/emacs/modus-themes][Modus Themes]] by
-Protesilaos Stavrou; these are both great and built-in with more recent versions
+Protesilaos Stavrou; these are great and built-in with more recent versions
 of Emacs.
 The following snippet loads the variant according to ~ar/use-dark-theme~, after
 setting some theme-specific variables.
@@ -512,8 +514,7 @@ This adds additional highlighting for TODO keywords.
   (setq hl-todo-keyword-faces
         '(;; For reminders to change or add something at a later date.
           ("TODO" warning bold)
-          ;; For code (or code paths) that are broken, unimplemented, or slow,
-          ;; and may become bigger problems later.
+          ;; For code that has incomplete or is missing documentation.
           ("DOC" warning bold)
           ;; For code (or code paths) that are broken, unimplemented, or slow,
           ;; and may become bigger problems later.
@@ -552,8 +553,9 @@ This adds additional highlighting for TODO keywords.
 :END:
 
 In this section, code blocks are tangled to ~lisp/ar-leader.el~.
-The library implements
-This is required in ~init.el~ using the following code block.
+The library implements leader and local leader functionality inspired by
+[[https://github.com/doomemacs/][Doom Emacs]].
+It is required in ~init.el~ using the following code block.
 #+begin_src emacs-lisp :padline no :tangle init.el
 (require 'ar-leader)
 
@@ -571,7 +573,7 @@ This is required in ~init.el~ using the following code block.
 ;; Created: 2026-02-20
 ;; Version: 0.1.0
 ;; Package-Requires: ((emacs "27.1"))
-;; Keywords: convenience, keybindings, evil
+;; Keywords: convenience, keybindings, leader, evil
 ;; URL: https://github.com/ahnaf-rafi/dotfiles
 ;;
 ;; SPDX-License-Identifier: MIT
@@ -811,7 +813,7 @@ E.g. Gives ar/localleader-julia-mode-map when input is julia-mode-map."
 
 In this section, code blocks are tangled to ~lisp/ar-keybind.el~ or to the
 submodule ~lisp/ar-keybind-funcs.el~.
-This is required in ~init.el~ using the following code block.
+This library is required in ~init.el~ using the following code block.
 #+begin_src emacs-lisp :padline no :tangle init.el
 (require 'ar-keybind)
 #+end_src
@@ -823,10 +825,243 @@ As always, let's give the file a header.
 ;;; Code:
 #+end_src
 
+** Preliminary tweaks to defaults
+I use Emacs in both MacOS and Fedora Linux.
+On MacOS, I prefer to use the command modifier as the meta key.
+#+begin_src emacs-lisp
+(when (eq system-type 'darwin)
+  (setq mac-command-modifier 'meta)
+  (setq mac-option-modifier 'option))
+#+end_src
+
+I don't want to have to press ~<escape>~ thrice to quit things.
+Just once should suffice.
+This is handled by the following snippet.
+#+begin_src emacs-lisp
+;; Better escape
+(global-set-key (kbd "<escape>") #'keyboard-escape-quit)
+#+end_src
+This snippet ensures that hitting ~<C-i>~ calls ~indent-for-tab-command~ rather
+than entering ~TAB~ characters.
+#+begin_src emacs-lisp
+(global-set-key (kbd "C-i") #'indent-for-tab-command)
+#+end_src
+This snippet maps keybindings to Emacs' ``zoom'' functions.
+#+begin_src emacs-lisp
+;; Text scale and zoom
+(global-set-key (kbd "C-+") #'text-scale-increase)
+(global-set-key (kbd "C-_") #'text-scale-decrease)
+(global-set-key (kbd "C-)") #'text-scale-adjust)
+#+end_src
+
+Typically, ~<C-u>~ in Emacs invokes the ~universal-argument~ function.
+In the subsequent configuration, I will be using ~evil-mode~, which remaps
+~<C-u>~ to ~evil-scroll-up~.
+Since the ~universal-argument~ function is useful to have access to, this
+snippet maps ~<C-M-u>~ to it.
+#+begin_src emacs-lisp
+;; Universal arguments with evil
+(global-set-key (kbd "C-M-u") #'universal-argument)
+#+end_src
+
+** ~which-key~
+Sometimes, I forget my keybindings.
+The ~which-key~ package is immensely helpful in helping me remember them.
+I use it, and load it eagerly using the ~:demand t~ argument.
+#+begin_src emacs-lisp
+(use-package which-key
+  :ensure nil ;; which-key is built-in.
+  :init
+  (setq which-key-idle-delay 0.3)
+  (setq which-key-allow-evil-operators t)
+  (which-key-setup-side-window-bottom)
+  (which-key-mode))
+#+end_src
+
+** Early leader bindings
+#+begin_src emacs-lisp
+(ar/leader
+  (":" #'pp-eval-expression)
+  (";" #'execute-extended-command "M-x")
+  ("&" #'async-shell-command)
+  ("u" #'universal-argument))
+#+end_src
+
+** TODO ~evil~
+#+begin_src emacs-lisp
+(use-package evil
+  :demand t
+  :init
+  ;; Load evil-integration.el --- provides Evil integration for various
+  ;; modes. Must be be set before Evil is loaded.
+  (setq evil-want-integration t)
+
+  ;; Don't load evil-keybindings.el.
+  (setq evil-want-keybinding nil)
+
+  ;; Keybinding behavior settings.
+  ;; In Vim, <C-i> jumps forward in the jump list. I prefer the emacs default of
+  ;; inserting a tab character.
+  (setq evil-want-C-i-jump nil)
+  ;; In insert, enable <C-u> deleting back to indentiation.
+  (setq evil-want-C-u-delete t)
+  ;; In normal, enable <C-u> scrolling up.
+  (setq evil-want-C-u-scroll t)
+
+  ;; Cursor movement.
+  ;; Exclude newline with `v$'.
+  (setq evil-v$-excludes-newline t)
+  ;; Have movements respect `visual-line-mode' when it is on: motions such as j
+  ;; and k navigate by visual lines (on the screen) rather than “physical” lines
+  ;; (defined by newline characters). Must be set before Evil is loaded.
+  (setq evil-respect-visual-line-mode t)
+  ;; Vertical motions after $ should maintain the cursor at the end of the line,
+  ;; even if the target line is longer.
+  (setq evil-track-eol t)
+
+  ;; Window management.
+  ;; Split window created below.
+  (setq evil-split-window-below t)
+  ;; Vertical split window created to right.
+  (setq evil-vsplit-window-right t)
+
+  ;; Miscellaneous.
+  ;; Look for completion matches only in current buffer.
+  (setq evil-complete-all-buffers nil)
+  ;; Don't signal errors on left/right motions in keyboard macros.
+  (setq evil-kbd-macro-suppress-motion-error t)
+  ;; No modeline tag: doom-modeline handles this.
+  (setq evil-mode-line-format 'nil)
+
+  ;; Additional.
+  ;; Pass ex command region covering only the visual selection. Otherwise,
+  ;; visual selection will be passed with extension to full lines.
+  (setq evil-ex-visual-char-range t)
+  ;; Show interactive highlighting in selected window.
+  (setq evil-ex-interactive-search-highlight 'selected-window)
+  ;; Search for symbols with * and #. That is, search for `my_variable_name' and
+  ;; not `my' if cursor is on `my'.
+  (setq evil-symbol-word-search t)
+
+  ;; Initialize evil-mode.
+  (evil-mode 1)
+  ;; Make sure the *Messages* buffer starts in normal mode
+  (evil-set-initial-state 'messages-buffer-mode 'normal)
+  :config
+  ;; TODO: Document properly.
+  (evil-define-key 'visual 'global
+    (kbd "<") #'ar/evil-visual-dedent
+    (kbd ">") #'ar/evil-visual-indent)
+
+  (evil-define-key '(normal visual motion) 'global
+    (kbd "] m") #'ar/next-beginning-of-method
+    (kbd "[ m") #'ar/previous-beginning-of-method
+    (kbd "] M") #'ar/next-end-of-method
+    (kbd "[ M") #'ar/previous-end-of-method))
+#+end_src
+
+** ~evil-collection~
+The base ~evil~ package only provides Vim keybindings for core Emacs features.
+The ~evil-collection~ package contains a number of Evil bindings for various
+built-in and third-party packages (such as Magit, Dired, and mu4e).
+I like the bindings provided for most packages, but am not a fan of the binding
+choices for ~pdf-tools~ (~pdf-mode~ and ~pdf-view-mode~).
+So I disable the ~evil-collection~ bindings and configure bindings myself later
+for those modes.
+#+begin_src emacs-lisp
+(use-package evil-collection
+  :demand t
+  :init
+  ;; Preserve Emacs-state <tab> keys in org-mode.
+  (setq evil-collection-outline-bind-tab-p nil)
+  ;; Disable unimpaired.vim (https://github.com/tpope/vim-unimpaired) style
+  ;; bindings.
+  (setq evil-collection-want-unimpaired-p nil)
+  ;; Use evil in minibuffer
+  (setq evil-collection-setup-minibuffer t)
+
+  :config
+  ;; I like to tweak bindings after loading pdf-tools
+  (delete '(pdf pdf-view) evil-collection-mode-list)
+  (evil-collection-init))
+#+end_src
+
+** DOC ~evil-escape~
+#+begin_src emacs-lisp
+(use-package evil-escape
+  :demand t
+  :init
+  (evil-escape-mode))
+#+end_src
+
 ** The ~ar-keybind.el~ call to ~provide~
 #+begin_src emacs-lisp
 (provide 'ar-keybind)
 ;;; ar-keybind.el ends here
+#+end_src
+
+** TODO ~ar-keybind-funcs.el~
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-keybind-funcs.el :mkdirp yes
+:END:
+
+In this sub-section, code blocks are tangled to ~lisp/ar-keybind-funcs.el~.
+As always, let's give the file a header.
+#+begin_src emacs-lisp
+;;; ar-keybind-funcs.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+#+end_src
+
+*** DOC ~evil~ indentation
+#+begin_src emacs-lisp
+;; Visual indent/dedent
+;;;###autoload
+(defun ar/evil-visual-dedent ()
+  "Equivalent to vnoremap < <gv."
+  (interactive)
+  (evil-shift-left (region-beginning) (region-end))
+  (evil-normal-state)
+  (evil-visual-restore))
+
+;;;###autoload
+(defun ar/evil-visual-indent ()
+  "Equivalent to vnoremap > >gv."
+  (interactive)
+  (evil-shift-right (region-beginning) (region-end))
+  (evil-normal-state)
+  (evil-visual-restore))
+#+end_src
+
+*** DOC ~evil~ jump to function/method definitions
+#+begin_src emacs-lisp
+;;;###autoload
+(defun ar/next-beginning-of-method (count)
+  "Jump to the beginning of the COUNT-th method/function after point."
+  (interactive "p")
+  (beginning-of-defun (- count)))
+
+;;;###autoload
+(defun ar/previous-beginning-of-method (count)
+  "Jump to the beginning of the COUNT-th method/function before point."
+  (interactive "p")
+  (beginning-of-defun count))
+
+;;;###autoload
+(defalias #'ar/next-end-of-method #'end-of-defun
+  "Jump to the end of the COUNT-th method/function after point.")
+
+;;;###autoload
+(defun ar/previous-end-of-method (count)
+  "Jump to the end of the COUNT-th method/function before point."
+  (interactive "p")
+  (end-of-defun (- count)))
+#+end_src
+
+*** The ~ar-keybind-funcs.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-keybind-funcs)
+;;; ar-keybind-funcs.el ends here
 #+end_src
 
 * The ~ar-ui.el~ module for user interface settings
@@ -835,7 +1070,7 @@ As always, let's give the file a header.
 :END:
 
 In this section, code blocks are tangled to ~lisp/ar-ui.el~.
-This is required in ~init.el~ using the following code block.
+This library is required in ~init.el~ using the following code block.
 #+begin_src emacs-lisp :padline no :tangle init.el
 (require 'ar-ui)
 #+end_src
@@ -904,9 +1139,8 @@ For some Emacs modes, the modeline is unnecessary and can be hidden with the
 #+end_src
 
 ** Quitting Emacs
+I disable the confirmation request behavior when quitting emacs:
 I don't need to confirm each time I call kill-emacs.
-The following setting disables the confirmation request behavior when quitting
-emacs.
 #+begin_src emacs-lisp
 ;; Don't require confirmation every time when quitting.
 (setq confirm-kill-emacs nil)
@@ -931,7 +1165,7 @@ Here is a quick leader keybind to save my buffers and then quit emacs.
 :END:
 
 In this section, code blocks are tangled to ~lisp/ar-editor.el~.
-This is required in ~init.el~ using the following code block.
+This library is required in ~init.el~ using the following code block.
 #+begin_src emacs-lisp :padline no :tangle init.el
 (require 'ar-editor)
 #+end_src
@@ -1102,6 +1336,1926 @@ I enable this mode globally.
 #+begin_src emacs-lisp
 (provide 'ar-editor)
 ;;; ar-editor.el ends here
+#+end_src
+
+* TODO The ~ar-completion.el~ module for settings for completion interfaces
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-completion.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/ar-completion.el~.
+This is required in ~init.el~ using the following code block.
+#+begin_src emacs-lisp :padline no :tangle init.el
+(require 'ar-completion)
+#+end_src
+
+As always, let's give the file a header.
+#+begin_src emacs-lisp
+;;; ar-completion.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+#+end_src
+
+** ~savehist~
+This persists minibuffer history over Emacs restarts.
+#+begin_src emacs-lisp
+(setq savehist-save-minibuffer-history t)
+(add-hook 'after-init-hook #'savehist-mode)
+#+end_src
+
+** TODO ~vertico~
+Gives ~completing-read~ a vertical UI for selection candidates during minibuffer
+completions.
+#+begin_src emacs-lisp
+;; TODO: Configure properly
+(use-package vertico
+  :init
+  (setq vertico-cycle t)
+  (vertico-mode))
+#+end_src
+
+** TODO ~consult~
+#+begin_src emacs-lisp
+;; TODO: Configure properly
+(use-package consult
+  :init
+  (setq consult-preview-key 'nil)
+
+  :bind (([remap apropos]            . consult-apropos)
+         ([remap bookmark-jump]      . consult-bookmark)
+         ([remap evil-show-marks]    . consult-mark)
+         ([remap imenu]              . consult-imenu)
+         ([remap load-theme]         . consult-theme)
+         ([remap locate]             . consult-locate)
+         ([remap recentf-open-files] . consult-recent-file)
+         ([remap yank-pop]           . consult-yank-pop)))
+#+end_src
+
+** TODO ~marginalia~
+#+begin_src emacs-lisp
+;; TODO: Configure properly
+(use-package marginalia
+  :init
+  (setq marginalia-annotators '(marginalia-annotators-heavy
+				                        marginalia-annotators-light))
+  (marginalia-mode))
+#+end_src
+
+** TODO ~orderless~
+#+begin_src emacs-lisp
+;; TODO: Configure properly
+(use-package orderless
+  :init
+  (setq completion-styles '(orderless basic))
+  (setq completion-category-defaults nil)
+  (setq completion-category-overrides '((file (styles . (partial-completion))))))
+#+end_src
+
+** TODO ~corfu~
+#+begin_src emacs-lisp
+;; TODO: Configure properly
+(use-package corfu
+  :custom
+  (corfu-cycle t)                  ;; Enable cycling for `corfu-next/previous'
+  (corfu-auto t)                   ;; Enable auto completion
+  (corfu-separator ?\s)            ;; Orderless field separator
+  (corfu-quit-no-match 'separator) ;; Never quit, even if there is no match
+  (corfu-preselect 'prompt)        ;; Preselect the prompt
+  :init
+  (setq tab-always-indent 'complete)
+  (setq completion-cycle-threshold 3)
+  (setopt text-mode-ispell-word-completion nil)
+  (global-corfu-mode))
+#+end_src
+
+** TODO ~cape~
+#+begin_src emacs-lisp
+;; TODO: Configure properly
+(use-package cape
+  ;; Bind prefix keymap providing all Cape commands under a mnemonic key.
+  ;; Press C-c p ? to for help.
+  :bind ("C-c p" . cape-prefix-map)
+  :init
+  ;; Add to the global default value of `completion-at-point-functions' which is
+  ;; used by `completion-at-point'.  The order of the functions matters, the
+  ;; first function returning a result wins.  Note that the list of buffer-local
+  ;; completion functions takes precedence over the global list.
+  (add-hook 'completion-at-point-functions #'cape-file))
+#+end_src
+
+** TODO ~nerd-icons-completion~
+#+begin_src emacs-lisp
+(use-package nerd-icons-completion
+  :init
+  (nerd-icons-completion-mode)
+  :config
+  (add-hook 'marginalia-mode-hook #'nerd-icons-completion-marginalia-setup))
+#+end_src
+
+** Snippets with ~yasnippet~
+#+begin_src emacs-lisp
+(use-package yasnippet
+  :init
+  (setq yas-indent-line 'auto)
+  (with-eval-after-load 'yasnippet
+    (add-to-list 'yas-snippet-dirs (expand-file-name "snippets/"
+                                                     user-emacs-directory))
+    (defvaralias '% 'yas-selected-text))
+  (yas-global-mode 1))
+#+end_src
+
+** The ~ar-completion.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-completion)
+;;; ar-completion.el ends here
+#+end_src
+
+* DOC The ~ar-bufwinframes.el~ module for buffers, windows and frames
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-bufwinframes.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/ar-bufwinframes.el~.
+This is required in ~init.el~ using the following code block.
+#+begin_src emacs-lisp :padline no :tangle init.el
+(require 'ar-bufwinframes)
+#+end_src
+
+As always, let's give the file a header.
+#+begin_src emacs-lisp
+;;; ar-bufwinframes.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+#+end_src
+
+** DOC Buffers
+*** DOC ~ibuffer~
+#+begin_src emacs-lisp
+(use-package ibuffer
+  :ensure nil
+  :hook (ibuffer-mode . (lambda () (visual-line-mode -1))))
+#+end_src
+
+*** DOC ~nerd-icons-ibuffer~
+#+begin_src emacs-lisp
+(use-package nerd-icons-ibuffer
+  :hook (ibuffer-mode . nerd-icons-ibuffer-mode))
+#+end_src
+
+*** DOC Leader keybindings for dealing with buffers and bindings
+#+begin_src emacs-lisp
+(ar/leader
+ ("b"   nil "buffer")
+ ("b b" #'switch-to-buffer)
+ ("b i" #'ibuffer)
+ ("b r" #'ar/revert-buffer-no-confirm)
+ ("b d" #'kill-current-buffer)
+ ("b k" #'kill-buffer)
+ ("b p" #'previous-buffer)
+ ("b n" #'next-buffer)
+ ("b [" #'previous-buffer)
+ ("b ]" #'next-buffer))
+#+end_src
+
+** DOC Windows
+*** Basic tweaks
+Since I have wider screens, I prefer having side-by-side windows rather than
+top-to-bottom windows.
+Emacs splits windows horizontally (i.e. side-by-side) if a window has at least
+as many columns as specified by ~split-width-threshold~.
+Emacs further splits windows vertically (i.e. top-and-bottom) only if
+it has at least as many lines as specified by ~split-height-threshold~.
+I set the latter to nil to ensure that Emacs never does the top-to-bottom split
+unless explicitly called to do so, either by ~evil~ or by
+~split-window-below~.
+#+begin_src emacs-lisp
+;; Favor vertical splits over horizontal ones. Screens are usually wide.
+;; (setq split-width-threshold 160)
+;; (setq split-height-threshold nil)
+#+end_src
+
+*** DOC Bindings
+#+begin_src emacs-lisp
+(with-eval-after-load 'evil-maps
+  (ar/leader ("w" evil-window-map))
+  (let ((bindings '(("C-h" . evil-window-left)
+                    ("C-j" . evil-window-down)
+                    ("C-k" . evil-window-up)
+                    ("C-l" . evil-window-right)
+                    ("C-q" . evil-quit)
+                    ("d"   . evil-quit)
+                    ("x"   . kill-buffer-and-window)
+                    ("f"   . ffap-other-window)
+                    ("C-f" . ffap-other-window))))
+    (dolist (b bindings)
+      (define-key evil-window-map (kbd (car b)) (cdr b)))))
+#+end_src
+
+** DOC Frames
+#+begin_src emacs-lisp
+(ar/leader
+  ("F"   nil "frame")
+  ("F F" #'ar/toggle-frame-fullscreen)
+  ("F o" #'make-frame)
+  ("F q" #'ar/delete-frame-or-kill-emacs))
+#+end_src
+
+** The ~ar-bufwinframes.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-bufwinframes)
+;;; ar-bufwinframes.el ends here
+#+end_src
+
+** DOC ~ar-bufwinframes-funcs.el~
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-bufwinframes-funcs.el :mkdirp yes
+:END:
+
+In this sub-section, code blocks are tangled to ~lisp/ar-bufwinframes-funcs.el~.
+As always, let's give the file a header.
+#+begin_src emacs-lisp
+;;; ar-bufwinframes-funcs.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+
+;;;###autoload
+(defun ar/revert-buffer-no-confirm ()
+  "Revert the current buffer from its visited file without confirmation.
+Ignores auto-save files and preserves the current major and minor modes."
+  (interactive)
+  (revert-buffer t t t))
+
+;;;###autoload
+(defun ar/delete-frame-or-kill-emacs ()
+  "Delete current frame if it is non-unique in session. Otherwise, kill Emacs."
+  (interactive)
+  (if (cdr (frame-list))
+      (delete-frame)
+    (save-buffers-kill-emacs)))
+
+;;;###autoload
+(defun ar/toggle-frame-fullscreen ()
+  "Toggle between maximized and fullboth (fullscreen) states."
+  (interactive)
+  (let ((current-state (frame-parameter nil 'fullscreen)))
+    (set-frame-parameter
+     nil 'fullscreen
+     (if (eq current-state 'fullboth)
+         'maximized
+       'fullboth))))
+#+end_src
+
+*** The ~ar-bufwinframes-funcs.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-bufwinframes-funcs)
+;;; ar-bufwinframes-funcs.el ends here
+#+end_src
+
+* TODO The ~ar-files.el~ module for file management
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-files.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/ar-files.el~.
+This is required in ~init.el~ using the following code block.
+#+begin_src emacs-lisp :padline no :tangle init.el
+(require 'ar-files)
+#+end_src
+
+As always, let's give the file a header.
+#+begin_src emacs-lisp
+;;; ar-files.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+#+end_src
+
+** DOC ~dired~
+#+begin_src emacs-lisp
+(setq insert-directory-program "ls"
+      dired-use-ls-dired nil)
+(setq dired-kill-when-opening-new-dired-buffer t)
+(setq dired-listing-switches "-alh --group-directories-first  --no-group")
+;; Force ASCII collation so that '.' sorts before alphanumeric characters.
+(setenv "LC_COLLATE" "C")
+
+(add-hook 'dired-mode-hook #'display-line-numbers-mode)
+(add-hook 'dired-mode-hook #'display-fill-column-indicator-mode)
+(put 'dired-find-alternate-file 'disabled nil)
+#+end_src
+
+** TODO ~dirvish~
+#+begin_src emacs-lisp
+;; TODO: Refactor please.
+(use-package dirvish
+  :custom
+  (dirvish-quick-access-entries ; It's a custom option, `setq' won't work
+   '(("h" "~/"                          "Home")
+     ("d" "~/Downloads/"                "Downloads")
+     ("m" "/mnt/"                       "Drives")
+     ("s" "/ssh:my-remote-server")      "SSH server"
+     ("e" "/sudo:root@localhost:/etc")  "Modify program settings"
+     ("t" "~/.local/share/Trash/files/" "TrashCan")))
+  :init
+  (dirvish-override-dired-mode)
+  :config
+  ;; (dirvish-peek-mode)             ; Preview files in minibuffer
+  ;; (dirvish-side-follow-mode)      ; similar to `treemacs-follow-mode'
+  (setq dirvish-mode-line-format
+        '(:left (sort symlink) :right (omit yank index)))
+  (setq dirvish-attributes           ; The order *MATTERS* for some attributes
+        '(vc-state subtree-state nerd-icons collapse file-time file-size)
+        dirvish-side-attributes
+        '(vc-state nerd-icons collapse file-size))
+  ;; open large directory (over 20000 files) asynchronously with `fd' command
+  (setq dirvish-large-directory-threshold 20000)
+  (with-eval-after-load 'evil
+    (evil-define-key '(normal visual motion) dired-mode-map
+      (kbd "h") #'dired-up-directory
+      (kbd "l") #'dired-find-file))
+  ;; :bind ; Bind `dirvish-fd|dirvish-side|dirvish-dwim' as you see fit
+  ;; (("C-c f" . dirvish)
+  ;;  :map dirvish-mode-map               ; Dirvish inherits `dired-mode-map'
+  ;;  (";"   . dired-up-directory)        ; So you can adjust `dired' bindings here
+  ;;  ("?"   . dirvish-dispatch)          ; [?] a helpful cheatsheet
+  ;;  ("a"   . dirvish-setup-menu)        ; [a]ttributes settings:`t' toggles mtime, `f' toggles fullframe, etc.
+  ;;  ("f"   . dirvish-file-info-menu)    ; [f]ile info
+  ;;  ("o"   . dirvish-quick-access)      ; [o]pen `dirvish-quick-access-entries'
+  ;;  ("s"   . dirvish-quicksort)         ; [s]ort flie list
+  ;;  ("r"   . dirvish-history-jump)      ; [r]ecent visited
+  ;;  ;; ("l"   . dirvish-ls-switches-menu)  ; [l]s command flags
+  ;;  ("l"   . dired-find-file)  ; [l]s command flags
+  ;;  ("v"   . dirvish-vc-menu)           ; [v]ersion control commands
+  ;;  ("*"   . dirvish-mark-menu)
+  ;;  ("y"   . dirvish-yank-menu)
+  ;;  ("N"   . dirvish-narrow)
+  ;;  ("^"   . dirvish-history-last)
+  ;;  ("TAB" . dirvish-subtree-toggle)
+  ;;  ("M-f" . dirvish-history-go-forward)
+  ;;  ("M-b" . dirvish-history-go-backward)
+  ;;  ("M-e" . dirvish-emerge-menu))
+  )
+#+end_src
+
+** DOC ~recentf~
+#+begin_src emacs-lisp
+(require 'recentf)
+(setq recentf-max-saved-items 500)
+(setq recentf-max-menu-items 15)
+(setq recentf-exclude
+      '("^/\\(?:ssh\\|su\\|sudo\\)?:" ;; Remote files.
+        "COMMIT_EDITMSG\\'"           ;; Git commits.
+        "~\\'"                        ;; Backup files.
+        "/elpaca/.*"                  ;; Installed packages.
+        "/eln-cache/.*"               ;; Installed packages.
+        "/elpa/.*"                    ;; Installed packages.
+        "/itsalltext/.*"))            ;; Browser temp files.
+
+;; Auto-cleanup for `recentf'.
+(setq recentf-auto-cleanup 300)
+
+;; Silence the cleanup and saving activities of `recentf'.
+(dolist (func '(recentf-cleanup recentf-save-list))
+  (advice-add func :around
+              (lambda (orig-fun &rest args)
+                (let ((inhibit-message t))
+                  (apply orig-fun args)))))
+
+(recentf-mode 1)
+
+;; Save the recentf list whenever Emacs loses focus.
+(add-hook 'focus-out-hook #'recentf-save-list)
+#+end_src
+
+** DOC Open files in external processes.
+#+begin_src emacs-lisp
+;; Open certain files in external processes.
+(defvar ar/external-open-filetypes '("\\.xlsx?\\'" "\\.docx?\\'")) ;; "\\.csv\\'"
+
+(defvar ar/external-open-command
+  (cond
+   ((eq system-type 'darwin) "open")
+   ((eq system-type 'gnu/linux) "xdg-open")))
+
+(defun ar/external-open (filename)
+  "Open FILENAME in external application using `ar/external-open-command'."
+  (interactive "fFilename: ")
+  (let ((process-connection-type nil))
+    (call-process
+     ar/external-open-command nil 0 nil (expand-file-name filename))))
+
+(defun ar/find-file-auto (orig-fun &rest args)
+  "Advice for `find-file': open in external application using `ar/external-open'
+if file has extension in `ar/external-open-filetypes'.
+then open in . Otherwise, go with
+default behavior."
+  (let ((filename (car args)))
+    (if (cl-find-if
+         (lambda (regexp) (string-match regexp filename))
+         ar/external-open-filetypes)
+        (ar/external-open filename)
+      (apply orig-fun args))))
+
+;; Add advice.
+(advice-add 'find-file :around #'ar/find-file-auto)
+#+end_src
+
+** DOC Keybindings
+#+begin_src emacs-lisp
+(ar/leader
+  ("."     #'find-file)
+  ("f"     nil "files")
+  ("f f"   #'find-file)
+  ("f n"   #'rename-file)
+  ("f s"   #'save-buffer)
+  ("f d"   #'dired)
+  ("f j"   #'dired-jump)
+  ("f i"   #'ar/insert-file-name)
+  ("f r"   #'recentf-open-files)
+  ("f R"   #'ar/recentf-cleanup-silent)
+  ("f p"   #'ar/find-file-in-config)
+  ("f y y" #'ar/yank-buffer-file-path)
+  ("f y d" #'ar/yank-buffer-dir-path)
+  ("f y n" #'ar/yank-buffer-file-name))
+
+(with-eval-after-load 'evil
+  (with-eval-after-load 'wdired
+    (evil-define-key nil wdired-mode-map
+      [remap save-buffer] #'wdired-finish-edit)))
+#+end_src
+
+** The ~ar-files.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-files)
+;;; ar-files.el ends here
+#+end_src
+
+** DOC ~ar-files-funcs.el~
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-files-funcs.el :mkdirp yes
+:END:
+
+In this sub-section, code blocks are tangled to ~lisp/ar-files-funcs.el~.
+As always, let's give the file a header.
+#+begin_src emacs-lisp
+;;; ar-files-funcs.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+
+;; Insert file names from minibuffer
+;;;###autoload
+(defun ar/insert-file-name (filename &optional args)
+  "Insert name of file FILENAME into buffer after point.
+Prefixed with \\[universal-argument], expand the file name to its fully
+canocalized path.  See `expand-file-name'.
+
+Prefixed with \\[negative-argument], use relative path to file name from current
+directory, `default-directory'.  See `file-relative-name'.
+
+The default with no prefix is to insert the file name exactly as it appears in
+the minibuffer prompt."
+  ;; Based on insert-file in Emacs -- ashawley 20080926
+  (interactive "*fInsert file name: \nP")
+  (cond ((eq '- args)
+         (insert (file-relative-name filename)))
+        ((not (null args))
+         (insert (expand-file-name filename)))
+        (t
+         (insert filename))))
+
+;; Find file in config
+;;;###autoload
+(defun ar/find-file-in-config ()
+  "Find files in configuration directory using project.el"
+  (interactive)
+  (if (not (featurep 'project))
+      (require 'project))
+  (let* ((pr (project--find-in-directory (file-truename "~/dotfiles")))
+         (dirs (list (project-root pr))))
+    (project-find-file-in (thing-at-point 'filename) dirs pr)))
+
+;; Copy file path
+;;;###autoload
+(defun ar/yank-buffer-file-path ()
+  "Copy the current buffer's path to the kill ring."
+  (interactive)
+  (if-let (filename (or buffer-file-name
+                        (bound-and-true-p list-buffers-directory)))
+      (message (kill-new (abbreviate-file-name filename)))
+    (error "Couldn't find file path in current buffer")))
+
+;; Copy path to directory containing file
+;;;###autoload
+(defun ar/yank-buffer-dir-path ()
+  "Copy the current buffer's directory path to the kill ring."
+  (interactive)
+  (if-let (dir-name (or default-directory
+                        (bound-and-true-p list-buffers-directory)))
+      (message (kill-new (abbreviate-file-name dir-name)))
+    (error "Couldn't find directory path in current buffer")))
+
+;; Copy file name
+;; TODO: adjust for final child node of a directory path.
+;;;###autoload
+(defun ar/yank-buffer-file-name ()
+  "Copy the current buffer's non-directory name to the kill ring."
+  (interactive)
+  (if-let (filename (or buffer-file-name
+                        (bound-and-true-p list-buffers-directory)))
+      (message (kill-new (file-name-nondirectory
+                          (abbreviate-file-name filename))))
+    (error "Couldn't find file name in current buffer")))
+
+;;;###autoload
+(defun ar/recentf-cleanup-silent ()
+  "Run `recentf-cleanup' without any message output in echo area."
+  (interactive)
+  (let ((inhibit-message t)) ;; Stops message from appearing in echo area.
+    (recentf-cleanup)))
+#+end_src
+
+*** The ~ar-files-funcs.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-files-funcs)
+;;; ar-files-funcs.el ends here
+#+end_src
+
+* DOC The ~ar-help.el~ module for configuring Emacs' help interface
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-help.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/ar-help.el~.
+This is required in ~init.el~ using the following code block.
+#+begin_src emacs-lisp :padline no :tangle init.el
+(require 'ar-help)
+#+end_src
+
+As always, let's give the file a header.
+#+begin_src emacs-lisp
+;;; ar-help.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+#+end_src
+
+** Remap ~help-map~ to ~ar/leader~
+#+begin_src emacs-lisp
+(ar/leader ("h" help-map "Help"))
+#+end_src
+
+** DOC ~helpful~
+#+begin_src emacs-lisp
+;; helpful
+(use-package helpful
+  :hook ((helpful-mode . display-line-numbers-mode))
+  :bind (([remap describe-key]      . helpful-key)
+         ([remap describe-command]  . helpful-command)
+         ([remap describe-function] . helpful-callable)
+         ([remap describe-variable] . helpful-variable)
+         ([remap describe-symbol]   . helpful-symbol)))
+#+end_src
+
+** DOC ~elisp-demos~
+#+begin_src emacs-lisp
+(use-package elisp-demos
+  :init
+  (advice-add 'describe-function-1
+              :after #'elisp-demos-advice-describe-function-1)
+  (advice-add 'helpful-update :after #'elisp-demos-advice-helpful-update))
+#+end_src
+
+** DOC Some ~help-mode~ and ~Info-mode~ hooks
+#+begin_src emacs-lisp
+(dolist (hook '(Info-mode-hook help-mode-hook))
+  (add-hook hook #'ar/help-mode-h))
+#+end_src
+
+** The ~ar-help.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-help)
+;;; ar-help.el ends here
+#+end_src
+
+** DOC ~ar-help-funcs.el~
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-help-funcs.el :mkdirp yes
+:END:
+
+In this sub-section, code blocks are tangled to ~lisp/ar-help-funcs.el~.
+As always, let's give the file a header.
+#+begin_src emacs-lisp
+;;; ar-help-funcs.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+
+;;;###autoload
+(defun ar/help-mode-h ()
+  (setq-local show-trailing-whitespace nil)
+  ;; (visual-line-mode)
+  (display-line-numbers-mode))
+#+end_src
+
+*** The ~ar-help-funcs.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-help-funcs)
+;;; ar-help-funcs.el ends here
+#+end_src
+
+* DOC The ~ar-projects-vc.el~ module for projects and version control
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-projects-vc.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/ar-projects-vc.el~.
+This is required in ~init.el~ using the following code block.
+#+begin_src emacs-lisp :padline no :tangle init.el
+(require 'ar-projects-vc)
+#+end_src
+
+As always, let's give the file a header.
+#+begin_src emacs-lisp
+;;; ar-projects-vc.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+#+end_src
+
+** DOC ~project.el~
+#+begin_src emacs-lisp
+(use-package project
+  :ensure nil ;; Built-in.
+  :bind (("C-x p" . project-prefix-map))
+  :init
+  ;; Leader binds.
+  (ar/leader
+    ("p"   project-prefix-map)
+    ("p P" #'project-remeber-projects-under "Discover subdirectory projects")
+    ("SPC" #'project-find-file              "Find file in project"))
+
+  :config
+  ;; Anything here only runs AFTER project.el is loaded
+  (setq project-vc-extra-root-markers
+        '(".project" "Project.toml")))
+#+end_src
+
+** DOC ~vc~
+#+begin_src emacs-lisp
+(use-package vc
+  :ensure nil
+  :init
+  (setq vc-follow-symlinks t)
+  (setq vc-ignore-dir-regexp (format "\\(%s\\)\\|\\(%s\\)"
+                                     vc-ignore-dir-regexp
+                                     tramp-file-name-regexp))
+  :config
+  (ar/leader
+    ("v" #'vc-prefix-map "vc"))
+
+  :bind (:map vc-prefix-map
+              ("c" . vc-create-repo)))
+#+end_src
+
+** DOC ~magit~
+#+begin_src emacs-lisp
+(use-package transient) ;; Magit dependency.
+(use-package magit)
+#+end_src
+
+** DOC ~git-gutter~
+#+begin_src emacs-lisp
+(use-package git-gutter
+  :init
+  (global-git-gutter-mode 1)
+  :config
+  (with-eval-after-load 'evil
+    (evil-define-key '(normal visual motion) 'global
+      (kbd "] g") #'git-gutter:next-hunk
+      (kbd "[ g") #'git-gutter:previous-hunk)))
+#+end_src
+
+** DOC Some additional keybindings
+#+begin_src emacs-lisp
+(ar/leader
+  ("g"   nil "git")
+  ("g g" #'magit-status)
+  ("g c" #'magit-clone)
+  ("g i" #'magit-init)
+  ("g ]" #'git-gutter:next-hunk)
+  ("g [" #'git-gutter:previous-hunk))
+#+end_src
+
+** The ~ar-projects-vc.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-projects-vc)
+;;; ar-projects-vc.el ends here
+#+end_src
+
+* DOC The ~ar-search.el~ module for search
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-search.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/ar-search.el~.
+This is required in ~init.el~ using the following code block.
+#+begin_src emacs-lisp :padline no :tangle init.el
+(require 'ar-search)
+#+end_src
+
+As always, let's give the file a header.
+#+begin_src emacs-lisp
+;;; ar-search.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+#+end_src
+
+** DOC ~evil-snipe~
+#+begin_src emacs-lisp
+(use-package evil-snipe
+  :demand t
+  :init
+  (setq evil-snipe-smart-case t)
+  (setq evil-snipe-scope 'line)
+  (setq evil-snipe-repeat-scope 'visible)
+  (setq evil-snipe-char-fold t)
+
+  (evil-snipe-mode 1)
+	(evil-snipe-override-mode 1))
+#+end_src
+
+** DOC ~evil-traces~
+#+begin_src emacs-lisp
+(use-package evil-traces
+  :demand t
+  :init
+  (evil-traces-mode)
+  (evil-traces-use-diff-faces))
+#+end_src
+
+** DOC ~anzu~
+#+begin_src emacs-lisp
+(use-package anzu
+  :init
+  (global-anzu-mode 1)
+  :bind (([remap query-replace]        . #'anzu-query-replace)
+         ([remap query-replace-regexp] . #'anzu-query-replace-regexp)))
+#+end_src
+
+** DOC ~evil-anzu~
+#+begin_src emacs-lisp
+(use-package evil-anzu
+  :init
+  (with-eval-after-load 'evil
+    (require 'evil-anzu)))
+#+end_src
+
+** DOC ~ar-search-funcs.el~
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-search-funcs.el :mkdirp yes
+:END:
+
+In this sub-section, code blocks are tangled to ~lisp/ar-search-funcs.el~.
+As always, let's give the file a header.
+#+begin_src emacs-lisp
+;;; ar-search-funcs.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+#+end_src
+
+*** Go to long lines
+#+begin_src emacs-lisp
+;;;###autoload
+(defun ar/goto-long-line (len &optional msgp)
+  "Go to the first line that is greater than LEN characters long.
+Use a prefix arg to provide LEN.
+Plain `C-u' (no number) uses `fill-column' as LEN."
+  (interactive "P\np")
+  (setq len (if (consp len) fill-column (prefix-numeric-value len)))
+  (let ((start-line                 (line-number-at-pos))
+        (len-found                  0)
+        (found                      nil)
+        (inhibit-field-text-motion  t))
+    (while (and (not found)  (not (eobp)))
+      (forward-line 1)
+      (setq found  (< len (setq len-found  (- (line-end-position) (point))))))
+    (if found
+        (when msgp (message "Line %d: %d chars" (line-number-at-pos) len-found))
+      (goto-line start-line)
+      (message "Not found"))))
+#+end_src
+
+*** The ~ar-search-funcs.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-search-funcs)
+;;; ar-search-funcs.el ends here
+#+end_src
+
+** DOC Keybindings
+#+begin_src emacs-lisp
+(ar/leader
+  ("s"   nil "search")
+  ("s c" #'evil-ex-nohighlight)
+  ("s p" #'consult-ripgrep)
+  ("s l" #'consult-line)
+  ("s L" #'ar/goto-long-line))
+#+end_src
+
+** The ~ar-search.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-search)
+;;; ar-search.el ends here
+#+end_src
+
+* DOC The ~ar-coding-tools.el~ module for coding tools
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-coding-tools.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/ar-coding-tools.el~.
+This is required in ~init.el~ using the following code block.
+#+begin_src emacs-lisp :padline no :tangle init.el
+(require 'ar-coding-tools)
+#+end_src
+
+As always, let's give the file a header.
+#+begin_src emacs-lisp
+;;; ar-coding-tools.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+#+end_src
+
+** DOC Coding tools early leader maps
+#+begin_src emacs-lisp
+(ar/leader
+  ("c"   nil "code")
+  ("c i" #'imenu))
+#+end_src
+
+** DOC ~flymake~
+#+begin_src emacs-lisp
+(use-package flymake
+  :ensure nil ;; Built-in.
+  :init
+  (ar/leader
+    ("c e"  nil "errors")
+    ("c e l" #'flymake-show-buffer-diagnostics "list buffer errors")
+    ("c e n" #'flymake-goto-next-error          "next error")
+    ("c e p" #'flymake-goto-prev-error          "prev error"))
+  :config
+  (with-eval-after-load 'evil
+    (evil-define-key '(normal visual motion) flymake-mode-map
+      (kbd "] d") #'flymake-goto-next-error
+      (kbd "[ d") #'flymake-goto-prev-error
+      (kbd "g ?") #'flymake-show-diagnostic)))
+#+end_src
+
+** DOC ~eglot~
+#+begin_src emacs-lisp
+(use-package eglot
+  :ensure nil ;; Built-in.
+  :init
+  (setq eglot-connect-timeout 300)
+  :config
+  (add-hook 'eglot-managed-mode-hook (lambda () (eglot-inlay-hints-mode -1)))
+
+  (ar/leader ("c r" #'eglot-rename "rename symbol"))
+
+  (with-eval-after-load 'evil
+    (evil-define-key '(normal visual motion) eglot-mode-map
+      (kbd "g R") #'eglot-rename)))
+#+end_src
+
+** DOC ~consult-eglot~
+#+begin_src emacs-lisp
+(use-package consult-eglot
+  :init
+  (ar/leader ("c s" #'consult-eglot "search symbols")))
+#+end_src
+
+** DOC ~treesit-auto~
+#+begin_src emacs-lisp
+(use-package treesit-auto
+  :demand t
+  :config
+  (setq treesit-auto-install 'prompt)
+
+  ;; Add custom source for typst.
+  (add-to-list 'treesit-language-source-alist
+               '(typst "https://github.com/uben0/tree-sitter-typst"))
+  (add-to-list 'treesit-language-source-alist
+               '(yaml "https://github.com/tree-sitter-grammars/tree-sitter-yaml"))
+  ;; Tell treesit-auto to recognize these as a known languages.
+  (push 'typst treesit-auto-langs)
+  (push 'yaml treesit-auto-langs)
+  (global-treesit-auto-mode))
+  #+end_src
+
+** DOC ~eldoc~
+#+begin_src emacs-lisp
+(use-package eldoc
+  :ensure nil
+  :init
+  (setq max-mini-window-height 1)
+  (setq eldoc-echo-area-use-multiline-p nil))
+#+end_src
+
+** The ~ar-coding-tools.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-coding-tools)
+;;; ar-coding-tools.el ends here
+#+end_src
+
+* TODO The ~ar-tools.el~ module for  tools
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-tools.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/ar-tools.el~.
+This is required in ~init.el~ using the following code block.
+#+begin_src emacs-lisp :padline no :tangle init.el
+(require 'ar-tools)
+#+end_src
+
+As always, let's give the file a header.
+#+begin_src emacs-lisp
+;;; ar-tools.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+#+end_src
+
+** DOC ~vterm~
+#+begin_src emacs-lisp
+(use-package vterm
+  :init
+  (setq vterm-always-compile-module t)
+
+  ;; Leader keybindings.
+  (ar/leader
+    ("a t" #'vterm-other-window)
+    ("a T" #'vterm))
+  :hook (vterm-mode . ar/vterm-h)
+  :config
+  (setq vterm-copy-exclude-prompt t)
+  (setq vterm-kill-buffer-on-exit t)
+
+  (defun ar/vterm-h ()
+    "Hook function to run with vterm."
+    (setq-local show-trailing-whitespace nil)))
+#+end_src
+
+** DOC ~pdf-tools~
+#+begin_src emacs-lisp
+(use-package pdf-tools
+  :hook (pdf-view-mode . ar/pdf-h)
+  :init
+  (if (eq system-type 'darwin)
+      (progn
+        (setq pdf-view-use-scaling t)
+        (setq pdf-view-use-imagemagick nil)))
+
+  (pdf-loader-install)
+  :config
+  (evil-collection-pdf-setup)
+
+  (evil-collection-define-key '(normal visual motion) 'pdf-view-mode-map
+    (kbd "H")   #'image-bob
+    (kbd "J")   #'pdf-view-next-page-command
+    (kbd "K")   #'pdf-view-previous-page-command
+    (kbd "a")   #'pdf-view-fit-height-to-window
+    (kbd "s")   #'pdf-view-fit-width-to-window
+    (kbd "y")   #'pdf-view-kill-ring-save
+    (kbd "L")   #'image-eob
+    (kbd "o")   #'pdf-outline
+    (kbd "TAB") #'pdf-outline)
+
+  ;; Changes to the usual doom-modeline.
+  (when (fboundp 'doom-modeline-def-modeline)
+    (doom-modeline-def-modeline 'pdf
+      '(modals bar window-number matches pdf-pages buffer-info)
+      '(misc-info major-mode process vcs)))
+
+  (defun ar/pdf-h ()
+    (display-line-numbers-mode 0)
+    (turn-off-evil-snipe-mode)
+    (setq-local evil-normal-state-cursor (list nil))
+    (when (and (eq system-type 'darwin)
+               (boundp 'mac-mouse-wheel-smooth-scroll))
+      (setq-local mac-mouse-wheel-smooth-scroll nil))))
+#+end_src
+
+** TODO ~ebib~
+#+begin_src emacs-lisp
+(use-package ebib
+  :init
+  (setq ebib-default-directory "~/Dropbox/bib/")
+  (setq ebib-bibtex-dialect 'biblatex)
+  (setq ebib-file-associations '())
+  (setq ebib-save-indent-as-bibtex t)
+  (setq ebib-bib-search-dirs '("~/Dropbox/bib/"))
+  (setq ebib-preload-bib-files '("bibliography.bib"))
+  (setq ebib-file-search-dirs '("~/Dropbox/bib/pdf/"))
+  ;; Shorten file names since I always keep pdf files in the same location
+  ;; relative to bibliography.bib.
+  (setq ebib-truncate-file-names t)
+  ;; Some layout tweaks
+  (setq ebib-layout 'custom)
+  (setq ebib-width 0.5)
+  ;; Reading list
+  (setq ebib-reading-list-file "~/Dropbox/org/readinglist.org")
+
+  (ar/leader ("a b" #'ebib))
+
+  :bind (:map ebib-index-mode-map
+              ([remap save-buffer] . ebib-save-current-database))
+  :hook ((ebib-entry-mode . ar/ebib-entry-mode-h)
+         (ebib-index-mode . ar/ebib-index-mode-h))
+
+  :config
+  (ar/localleader ebib-index-mode-map
+    ("." #'ebib-jump-to-entry)
+    ("m" #'ebib-merge-bibtex-file))
+
+  (defun ar/ebib-entry-mode-h ()
+    (setq-local show-trailing-whitespace nil))
+
+  (defun ar/ebib-index-mode-h ()
+    (visual-line-mode -1)
+    (setq-local word-wrap nil)
+    (setq-local truncate-lines t)))
+#+end_src
+
+** TODO ~csv-mode~
+#+begin_src emacs-lisp
+(use-package csv-mode)
+#+end_src
+
+** TODO ~nov.el~
+#+begin_src emacs-lisp
+(use-package nov
+  :mode ("\\.epub\\'" . nov-mode))
+#+end_src
+
+** TODO ~olivetti~
+#+begin_src emacs-lisp
+(use-package olivetti
+  :hook ((olivetti-mode-on  . ar/olivetti-mode-on-h)
+         (olivetti-mode-off . ar/olivetti-mode-off-h))
+  :config
+  (setq olivetti-body-width 150)
+
+  (defun ar/olivetti-mode-on-h ()
+    (display-fill-column-indicator-mode -1)
+    (auto-fill-mode -1))
+
+  (defun ar/olivetti-mode-off-h ()
+    (display-fill-column-indicator-mode 1)
+    (auto-fill-mode 1)))
+#+end_src
+
+** The ~ar-tools.el~ call to ~provide~
+
+#+begin_src emacs-lisp
+(provide 'ar-tools)
+;;; ar--tools.el ends here
+#+end_src
+
+* TODO Programming languages
+** TODO Julia
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-julia.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/ar-julia.el~.
+This is required in ~init.el~ using the following code block.
+#+begin_src emacs-lisp :padline no :tangle init.el
+(require 'ar-julia)
+#+end_src
+
+*** TODO ~julia-mode~ and ~julia-ts-mode~
+#+begin_src emacs-lisp
+;;; ar-julia.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+
+(defun ar/julia-mode-h ()
+  (adaptive-wrap-prefix-mode)
+  (setq-local adaptive-wrap-extra-indent 2)
+  (setq-local evil-shift-width julia-indent-offset)
+  (julia-repl-mode)
+  (eglot-ensure))
+
+(use-package julia-mode
+  :hook (julia-mode . ar/julia-mode-h)
+  :config
+  (define-key julia-mode-map (kbd "TAB") 'julia-latexsub-or-indent)
+  (ar/localleader julia-mode-map
+    ("r" #'julia-repl)
+    ("a" #'julia-repl-send-region-or-line)
+    ("l" #'julia-repl-send-line)))
+
+(use-package julia-ts-mode
+  :mode "\\.jl$")
+#+end_src
+
+*** DOC ~julia-repl~
+#+begin_src emacs-lisp
+(use-package julia-repl
+  :init
+  (setq julia-repl-switches "--threads=auto --project=@.")
+  :config
+  (julia-repl-set-terminal-backend 'vterm))
+#+end_src
+
+*** TODO ~eglot-jl~
+#+begin_src emacs-lisp
+(use-package eglot-jl
+  :init
+  (setq eglot-connect-timeout 600)
+  ;; (setq eglot-jl-language-server-project "~/.julia/environments/eglot/")
+  (eglot-jl-init))
+#+end_src
+
+*** The ~ar-julia.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-julia)
+;;; ar-julia.el ends here
+#+end_src
+
+** Nix
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-nix.el :mkdirp yes
+:END:
+
+#+begin_src emacs-lisp :padline no :tangle init.el
+(require 'ar-nix)
+#+end_src
+
+#+begin_src emacs-lisp
+;;; ar-nix.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+#+end_src
+
+*** ~nix-ts-mode~
+#+begin_src emacs-lisp
+(use-package nix-ts-mode
+ :mode "\\.nix\\'")
+#+end_src
+
+*** The ~ar-nix.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-nix)
+;;; ar-nix.el ends here
+#+end_src
+
+** TODO Lua
+** TODO TeX
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-latex.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/ar-latex.el~.
+This is required in ~init.el~ using the following code block.
+#+begin_src emacs-lisp :padline no :tangle init.el
+(require 'ar-latex)
+#+end_src
+
+#+begin_src emacs-lisp
+;;; ar-latex.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+
+;; Built-in tex-mode fallback: disable script fontification.
+;; AUCTeX sets font-latex-fontify-script separately.
+(setq tex-fontify-script nil)
+#+end_src
+
+*** DOC The ~ar-latex-funcs.el~ library
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-latex-funcs.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/ar-latex-funcs.el~.
+This is required in ~init.el~ using the following code block.
+
+#+begin_src emacs-lisp
+;;; ar-latex-funcs.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+
+;; Built-in tex-mode fallback: disable script fontification.
+;; AUCTeX sets font-latex-fontify-script separately.
+
+(provide 'ar-latex-funcs)
+;;; ar-latex-funcs.el ends here
+#+end_src
+
+*** DOC Helper: ~ar/LaTeX-indent-level-item-continuation~
+#+begin_src emacs-lisp
+(defcustom ar/LaTeX-indent-level-item-continuation 4
+  "Indentation of continuation lines for items in itemize-like environments."
+  :group 'LaTeX-indentation
+  :type 'integer)
+#+end_src
+
+*** DOC Helper: ~ar/LaTeX-indent-item~
+#+begin_src emacs-lisp
+(defun ar/LaTeX-indent-item ()
+  "Proper indentation for LaTeX itemize/enumerate/description environments."
+  (save-match-data
+    (let* ((offset LaTeX-indent-level)
+           (contin (or (and (boundp 'ar/LaTeX-indent-level-item-continuation)
+                            ar/LaTeX-indent-level-item-continuation)
+                       (* 2 LaTeX-indent-level)))
+           (re-beg "\\\\begin{")
+           (re-end "\\\\end{")
+           (re-env "\\(itemize\\|\\enumerate\\|description\\)")
+           (indent (save-excursion
+                     (when (looking-at (concat re-beg re-env "}"))
+                       (end-of-line))
+                     (LaTeX-find-matching-begin)
+                     (current-column))))
+      (cond ((looking-at (concat re-beg re-env "}"))
+             (or (save-excursion
+                   (beginning-of-line)
+                   (ignore-errors
+                     (LaTeX-find-matching-begin)
+                     (+ (current-column)
+                        (if (looking-at (concat re-beg re-env "}"))
+                            contin
+                          offset))))
+                 indent))
+            ((looking-at (concat re-end re-env "}"))
+             indent)
+            ((looking-at "\\\\item")
+             (+ offset indent))
+            (t
+             (+ contin indent))))))
+#+end_src
+
+*** DOC Helpers: compiler functions
+#+begin_src emacs-lisp
+;; Remove LaTeX's built-in flymake backend; eglot/texlab handles diagnostics.
+(defun ar/remove-LaTeX-flymake ()
+  (remove-hook 'flymake-diagnostic-functions 'LaTeX-flymake t))
+(advice-add 'TeX-latex-mode :after #'ar/remove-LaTeX-flymake)
+
+(defun ar/latex-default-compile-on-master ()
+  "Run `TeX-command-default' on `TeX-master' for current buffer."
+  (interactive)
+  (TeX-command TeX-command-default #'TeX-master-file))
+
+(defun ar/save-and-latex-default-compile-on-master ()
+  "Save current buffer and run `ar/latex-default-compile-on-master'."
+  (interactive)
+  (save-buffer)
+  (ar/latex-default-compile-on-master))
+#+end_src
+
+*** TODO ~auctex~
+#+begin_src emacs-lisp
+(defun ar/latex-mode-h ()
+  (setq-local fill-nobreak-predicate nil)
+  (setq-local TeX-command-default "LaTeXMk")
+  (visual-line-mode 1)
+  (auto-fill-mode 1)
+  (adaptive-wrap-prefix-mode 1)
+  (reftex-mode 1)
+  (eglot-ensure)
+  (font-latex-add-keywords '(("bm" "{")) 'bold-command)
+  (setq-local ispell-parser 'tex))
+
+(use-package tex
+  :ensure auctex
+  :hook (TeX-mode . ar/latex-mode-h)
+  :init
+  (setq TeX-save-query nil)
+  (setq TeX-source-correlate-mode t)
+  (setq TeX-source-correlate-start-server t)
+  (setq TeX-electric-sub-and-superscript t)
+  (setq TeX-electric-math (cons "\\(" "\\)"))
+  (setq TeX-brace-indent-level 0)
+  (setq LaTeX-left-right-indent-level 0)
+  (setq LaTeX-electric-left-right-brace t)
+  (setq LaTeX-section-hook '(LaTeX-section-heading
+                             LaTeX-section-title
+                             LaTeX-section-toc
+                             LaTeX-section-section
+                             LaTeX-section-label))
+
+  ;; preview settings
+  (setq preview-locating-previews-message nil)
+  (setq preview-protect-point t)
+  (setq preview-leave-open-previews-visible t)
+  (setq preview-auto-cache-preamble t)
+  (setq preview-LaTeX-command-replacements '(preview-LaTeX-disable-pdfoutput))
+
+  ;; Disable script height changes; clear sectioning colour handled separately.
+  (setq font-latex-fontify-script nil)
+  (setq font-latex-fontify-sectioning 'color)
+  ;; May not be needed?
+  ;; (with-eval-after-load 'font-latex
+  ;;   (set-face-foreground 'font-latex-script-char-face nil))
+
+  ;; (setq-default eglot-workspace-configuration
+  ;;               '(:texlab (:build (:onSave t
+  ;;                                  :executable "latexmk"
+  ;;                                  :args ["-pdf" "-interaction=nonstopmode" "-synctex=1" "%f"]
+  ;;                                  :forwardSearchAfter t))))
+  ;;                          ;; :forwardSearch (:executable "emacsclient"
+  ;;                          ;;                 ;; Use %f (tex file) instead of %p (pdf file)
+  ;;                          ;;                 :args ["--eval" "(ar/texlab-refresh-forward \"%f\" %l)"])
+
+
+
+  ;; (defun ar/texlab-refresh-forward (tex-path line)
+  ;; "Refresh the PDF corresponding to TEX-PATH and jump to LINE."
+  ;; (let* ((pdf-path (concat (file-name-sans-extension tex-path) ".pdf"))
+  ;;        (buf (find-buffer-visiting pdf-path)))
+  ;;   (if (and pdf-path (file-exists-p pdf-path))
+  ;;       (if buf
+  ;;           (with-current-buffer buf
+  ;;             (pdf-view-revert-buffer nil t)
+  ;;             (display-buffer buf '(display-buffer-reuse-window))
+  ;;             (pdf-sync-forward-search))
+  ;;         ;; Fallback: Open in side window if not already open
+  ;;         (let ((new-buf (find-file-noselect pdf-path)))
+  ;;           (display-buffer-in-side-window new-buf '((side . right) (window-width . 0.5)))
+  ;;           (with-current-buffer new-buf
+  ;;             (pdf-sync-forward-search))))
+  ;;     (message "No PDF found for %s. Build might have failed." tex-path))))
+
+
+  ;; Register texlab LSP server; must be deferred until eglot is available.
+  (with-eval-after-load 'eglot
+    (add-to-list 'eglot-server-programs
+                 '(latex-mode . ("texlab"))))
+  :config
+  (with-eval-after-load 'latex
+    (ar/localleader LaTeX-mode-map
+      ("a"  #'ar/save-and-latex-default-compile-on-master)
+      ("v"  #'TeX-view)
+      (";" #'reftex-toc)
+      ("c"  #'TeX-clean)))
+
+  ;; Revert the PDF buffer after compilation finishes.
+  (add-hook 'TeX-after-compilation-finished-functions
+            #'TeX-revert-document-buffer)
+  ;; SyncTeX support and latexmk integration.
+  (require 'pdf-sync)
+  ;; TODO: implement these locally.
+  ;; (require 'auctex-latexmk)
+  ;; (auctex-latexmk-setup)
+
+  (setq TeX-view-program-selection '((output-pdf "PDF Tools")))
+  ;; Font-lock for BibLaTeX and common reference commands.
+  (setq font-latex-match-reference-keywords
+        '(("printbibliography" "[{")
+          ("addbibresource" "[{")
+          ("cite" "[{")
+          ("citep" "[{")
+          ("citet" "[{")
+          ("Cite" "[{")
+          ("parencite" "[{")
+          ("Parencite" "[{")
+          ("footcite" "[{")
+          ("footcitetext" "[{")
+          ("textcite" "[{")
+          ("Textcite" "[{")
+          ("smartcite" "[{")
+          ("Smartcite" "[{")
+          ("cite*" "[{")
+          ("parencite*" "[{")
+          ("supercite" "[{")
+          ("cites" "[{")
+          ("Cites" "[{")
+          ("parencites" "[{")
+          ("Parencites" "[{")
+          ("footcites" "[{")
+          ("footcitetexts" "[{")
+          ("smartcites" "[{")
+          ("Smartcites" "[{")
+          ("textcites" "[{")
+          ("Textcites" "[{")
+          ("supercites" "[{")
+          ("autocite" "[{")
+          ("Autocite" "[{")
+          ("autocite*" "[{")
+          ("Autocite*" "[{")
+          ("autocites" "[{")
+          ("Autocites" "[{")
+          ("citeauthor" "[{")
+          ("Citeauthor" "[{")
+          ("citetitle" "[{")
+          ("citetitle*" "[{")
+          ("citeyear" "[{")
+          ("citedate" "[{")
+          ("citeurl" "[{")
+          ("fullcite" "[{")
+          ("autoref" "[{")
+          ("href" "[{")
+          ("url" "[{")
+          ("cref" "{")
+          ("Cref" "{")
+          ("cpageref" "{")
+          ("Cpageref" "{")
+          ("cpagerefrange" "{")
+          ("Cpagerefrange" "{")
+          ("crefrange" "{")
+          ("Crefrange" "{")
+          ("labelcref" "{")))
+  (setq font-latex-match-textual-keywords
+        '(("parentext" "{")
+          ("brackettext" "{")
+          ("hybridblockquote" "[{")
+          ("textelp" "{")
+          ("textelp*" "{")
+          ("textins" "{")
+          ("textins*" "{")
+          ("subcaption" "[{")))
+  (setq font-latex-match-variable-keywords
+        '(("numberwithin" "{")
+          ("setlist" "[{")
+          ("setlist*" "[{")
+          ("newlist" "{")
+          ("renewlist" "{")
+          ("setlistdepth" "{")
+          ("restartlist" "{")
+          ("crefname" "{")))
+  ;; Reset and repopulate indentation rules for theorem-like environments.
+  (setq LaTeX-indent-environment-list nil)
+  (dolist (envpair '(("verbatim"      current-indentation)
+                     ("verbatim*"     current-indentation)
+                     ("filecontents"  current-indentation)
+                     ("filecontents*" current-indentation)
+                     ("frame"         current-indentation)
+                     ("theorem"       current-indentation)
+                     ("thm"           current-indentation)
+                     ("corollary"     current-indentation)
+                     ("cor"           current-indentation)
+                     ("lemma"         current-indentation)
+                     ("lem"           current-indentation)
+                     ("definition"    current-indentation)
+                     ("def"           current-indentation)
+                     ("assumption"    current-indentation)
+                     ("asm"           current-indentation)
+                     ("remark"        current-indentation)
+                     ("rem"           current-indentation)
+                     ("example"       current-indentation)
+                     ("eg"            current-indentation)
+                     ("proof"         current-indentation)
+                     ("problem"       current-indentation)
+                     ("itemize"       ar/LaTeX-indent-item)
+                     ("enumerate"     ar/LaTeX-indent-item)
+                     ("description"   ar/LaTeX-indent-item)))
+    (add-to-list 'LaTeX-indent-environment-list envpair)))
+#+end_src
+
+*** DOC ~procress~
+#+begin_src emacs-lisp
+(use-package procress
+  :hook (LaTeX-mode . procress-auctex-mode)
+  :config
+  (procress-load-default-svg-images))
+#+end_src
+
+*** TODO ~evil-tex-ts~
+#+begin_src emacs-lisp
+(use-package evil-tex-ts
+  :ensure t
+  :after (evil)
+  :hook ((LaTeX-mode . evil-tex-ts-mode)
+         (latex-mode . evil-tex-ts-mode))
+  :init
+  (setq evil-tex-ts-toggle-override-m nil)
+  (setq evil-tex-ts-toggle-override-t t)
+
+  ;; NOTE: THIS NEEDS TO HAVE THE COMPILED LIB tree-sitter-latex.so!!!
+  (add-to-list 'treesit-extra-load-path
+               (expand-file-name "~/.config/emacs/treesitter/"))
+  (add-to-list 'treesit-extra-load-path
+               (expand-file-name "~/external-repos/tree-sitter-latex/"))
+  :config
+  ;; IMPORTANT: Set preferred inline math format
+  ;; 'dollar for $...$ (default), 'paren for \(...\)
+  (setq evil-tex-ts-preferred-inline-math 'paren))
+#+end_src
+
+*** TODO ~preview-auto.el~
+#+begin_src emacs-lisp
+(use-package preview-auto
+  :hook (LaTeX-mode . preview-auto-setup))
+#+end_src
+
+*** TODO ~auctex-latexmk~
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/auctex-latexmk.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/auctex-latexmk.el~.
+
+#+begin_src emacs-lisp
+;;; auctex-latexmk.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+
+(require 'latex)
+
+;; Only needed for backward compatibility.  Use quote to
+;; hide this from tools used to maintain the Emacsmirror.
+(require (quote tex-buf) nil t)
+
+(defgroup auctex-latexmk nil
+  "Add LatexMk support to AUCTeX."
+  :group 'AUCTeX
+  :prefix "auctex-latexmk")
+
+(defcustom auctex-latexmk-encoding-alist
+  '((japanese-iso-8bit      . "euc")
+    (japanese-iso-8bit-unix . "euc")
+    (euc-jp                 . "euc")
+    (euc-jp-unix            . "euc")
+    (utf-8                  . "utf8")
+    (utf-8-unix             . "utf8")
+    (japanese-shift-jis     . "sjis")
+    (japanese-shift-jis-dos . "sjis"))
+  "Encoding mapping for platex."
+  :group 'auctex-latexmk)
+
+(defcustom auctex-latexmk-inherit-TeX-PDF-mode nil
+  "If non-nil add -pdf flag to latexmk when `TeX-PDF-mode' is active."
+  :group 'auctex-latexmk)
+
+(defun TeX-run-latexmk (name command file)
+  (let ((TeX-sentinel-default-function 'Latexmk-sentinel)
+        (pair (assq buffer-file-coding-system auctex-latexmk-encoding-alist)))
+    (unless (null pair)
+      (setenv "LATEXENC" (cdr pair)))
+    (TeX-run-TeX name command file)
+    (setenv "LATEXENC" nil)))
+
+;;;###autoload
+(defun auctex-latexmk-setup ()
+  "Add LatexMk command to TeX-command-list."
+  (add-to-list 'TeX-expand-list
+               '("%(-PDF)"
+                 (lambda ()
+                   (cond
+                    ((and (eq TeX-engine 'default)
+                          TeX-PDF-mode
+                          auctex-latexmk-inherit-TeX-PDF-mode)
+                     "-pdf ")
+                    ((and (eq TeX-engine 'xetex)
+                          TeX-PDF-mode
+                          auctex-latexmk-inherit-TeX-PDF-mode)
+                     "-pdf -pdflatex=xelatex ")
+                    ((eq TeX-engine 'xetex) "-xelatex ")
+                    ((eq TeX-engine 'luatex) "-lualatex ")
+                    (t "")))))
+  (setq-default TeX-command-list
+                (cons
+                 '("LatexMk" "latexmk %(-PDF)%S%(mode) %(file-line-error) %(extraopts) %t" TeX-run-latexmk nil
+                   (plain-tex-mode latex-mode doctex-mode) :help "Run LatexMk")
+                 TeX-command-list)
+                LaTeX-clean-intermediate-suffixes
+                (append LaTeX-clean-intermediate-suffixes
+                        '("\\.fdb_latexmk" "\\.aux.bak" "\\.fls"))))
+
+(defun Latexmk-sentinel (process name)
+  (save-excursion
+    (goto-char (point-max))
+    (cond
+      ((re-search-backward (format "^%s finished at" mode-name) nil t)
+       (if (re-search-backward "^Run number [0-9]+ of rule '\\(pdf\\|lua\\|xe\\)?latex'" nil t)
+           (progn
+             (forward-line 5)
+             (let ((beg (point)))
+               (when (string= (current-word) "Latexmk")
+                 ;; Special treatment for MiKTeX
+                 (forward-line))
+               (re-search-forward "^Latexmk:" nil t)
+               (beginning-of-line)
+               (save-restriction
+                 (narrow-to-region beg (point))
+                 (goto-char (point-min))
+                 (TeX-LaTeX-sentinel process name))))
+         (message (format "%s: nothing to do" name))))
+      ((re-search-backward (format "^%s exited abnormally with code" mode-name) nil t)
+       (re-search-backward "^Collected error summary (may duplicate other messages):" nil t)
+       (re-search-forward "^  \\([^:]+\\):" nil t)
+       (let ((com (TeX-match-buffer 1)))
+         (cond
+           ((string-match "^\\(pdf\\|lua\\|xe\\)?latex" com)
+            (goto-char (point-min))
+            (TeX-LaTeX-sentinel process name)
+            (when (string= TeX-command-next TeX-command-BibTeX)
+              (setq TeX-command-default nil)))
+           ((string-match "^bibtex " com)
+            (forward-line -1)
+            (re-search-backward com nil t)
+            (forward-line 5)
+            (let ((beg (point)))
+              (re-search-forward "^Rule" nil t)
+              (beginning-of-line)
+              (save-restriction
+                (narrow-to-region beg (point))
+                (TeX-BibTeX-sentinel process name))))))))))
+
+(defadvice TeX-recenter-output-buffer (around recenter-for-latexmk activate)
+  (setq ad-return-value
+        (let ((buffer (TeX-active-buffer)))
+          (if buffer
+              (if (with-current-buffer buffer
+                    (goto-char (point-max))
+                    (re-search-backward "^latexmk" nil t))
+                  (let ((old-buffer (current-buffer)))
+                    (TeX-pop-to-buffer buffer t t)
+                    (bury-buffer buffer)
+                    (goto-char (point-max))
+                    (re-search-backward "^Run number [0-9]+ of rule 'bibtex .+'"
+                                        nil t)
+                    (re-search-forward "^Rule" nil t)
+                    (forward-line -1)
+                    (recenter (if line
+                                  (prefix-numeric-value line)
+                                  (/ (window-height) 2)))
+                    (TeX-pop-to-buffer old-buffer nil t))
+                  ad-do-it)
+              (message "No process for this document.")))))
+
+(provide 'auctex-latexmk)
+;;; auctex-latexmk.el ends here
+#+end_src
+
+**** TODO Refactor into ~ar-latexmk.el~ library.
+**** TODO Look at  ~auctex-cont-latexmk.el~ for possible improvements.
+[[https://github.com/ultronozm/auctex-cont-latexmk.el][auctex-cont-latexmk.el]]
+
+*** ~reftex~
+#+begin_src emacs-lisp
+(use-package reftex
+  :ensure nil
+  :init
+  (setq reftex-cite-format
+        '((?a . "\\autocite[]{%l}")
+          (?b . "\\blockcquote[]{%l}{}")
+          (?c . "\\cite[]{%l}")
+          (?f . "\\footcite[]{%l}")
+          (?n . "\\nocite{%l}")
+          (?p . "\\parencite[]{%l}")
+          (?s . "\\smartcite[]{%l}")
+          (?t . "\\textcite[]{%l}")))
+  (setq reftex-toc-split-windows-fraction 0.3)
+  ;; Required when reftex-cite-format is set manually; see
+  ;; https://superuser.com/a/1386206
+  (setq LaTeX-reftex-cite-format-auto-activate nil)
+  (setq reftex-plug-into-AUCTeX t)
+  (add-hook 'reftex-mode-hook #'evil-normalize-keymaps))
+#+end_src
+
+*** The ~ar-latex.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-latex)
+;;; ar-latex.el ends here
+#+end_src
+
+** TODO ~bibtex-mode~
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-bibtex.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/ar-bibtex.el~.
+This is required in ~init.el~ using the following code block.
+#+begin_src emacs-lisp :padline no :tangle init.el
+(require 'ar-bibtex)
+#+end_src
+
+#+begin_src emacs-lisp
+;;; ar-bibtex.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+
+(defun ar/bibtex-generate-autokey ()
+  "Generate a citation key in year-name-title order.
+Uses the same components as `bibtex-generate-autokey' but combines
+them as (year name title) rather than the default (name year title)."
+  (interactive)
+  (let* ((names (bibtex-autokey-get-names))
+         (year  (bibtex-autokey-get-year))
+         (title (bibtex-autokey-get-title)))
+    (concat year names title)))
+
+(defun ar/insert-bibtex-autokey ()
+  "Insert autogenerated citation key for BibTeX entry at point."
+  (interactive)
+  (insert (ar/bibtex-generate-autokey)))
+
+(defun ar/bibtex-mode-h ()
+  (require 's)  ;; needed for s-upper-camel-case in autokey generation
+  (display-line-numbers-mode)
+  (eglot-ensure))
+
+(use-package bibtex
+  :ensure nil  ;; built-in
+  :hook (bibtex-mode . ar/bibtex-mode-h)
+  :init
+  (setq bibtex-dialect 'biblatex)
+  (setq bibtex-align-at-equal-sign t)
+  (setq bibtex-text-indentation 20)
+  (add-to-list 'auto-mode-alist '("\\.bibtex\\'" . bibtex-mode))
+  ;; Auto-key generation: year-name-title order (differs from bibtex default).
+  (setq bibtex-autokey-year-length 4)
+  (setq bibtex-autokey-names 1)
+  (setq bibtex-autokey-titlewords 3)
+  (setq bibtex-autokey-titlewords-stretch 0)
+  (setq bibtex-autokey-titleword-length nil)
+  (setq bibtex-autokey-titleword-ignore
+        '("A" "a" "An" "an" "The" "the"
+          "Above" "above" "About" "about" "Across" "across"
+          "Against" "against" "Along" "along" "Among" "among"
+          "Around" "around" "At" "at" "Before" "before"
+          "Behind" "behind" "Below" "below" "Beneath" "beneath"
+          "Beside" "beside" "Between" "between" "Beyond" "beyond"
+          "By" "by" "Down" "down" "During" "during"
+          "Except" "except" "For" "for" "From" "from"
+          "In" "in" "Inside" "inside" "Into" "into"
+          "Is" "is" "It" "it" "Its" "its"
+          "Like" "like" "Near" "near" "Of" "of"
+          "Off" "off" "On" "on" "Onto" "onto"
+          "Since" "since" "To" "to" "Toward" "toward"
+          "Through" "through" "Under" "under" "Until" "until"
+          "Up" "up" "Upon" "upon" "With" "with"
+          "Within" "within" "Without" "without"
+          "And" "and" "But" "but" "Nor" "nor"
+          "Or" "or" "So" "so" "Yet" "yet"))
+  ;; Requires s.el for CamelCase title-word conversion.
+  (setq bibtex-autokey-titleword-case-convert-function #'s-upper-camel-case)
+  (setq bibtex-autokey-titleword-separator "")
+  ;; Register texlab for bibtex-mode LSP support.
+  (with-eval-after-load 'eglot
+    (add-to-list 'eglot-server-programs
+                 '(bibtex-mode . ("texlab"))))
+  :config
+  (ar/localleader bibtex-mode-map
+    ("k" #'ar/insert-bibtex-autokey)))
+#+end_src
+
+*** The ~ar-bibtex.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-bibtex)
+;;; ar-bibtex.el ends here
+#+end_src
+
+** TODO ~org-mode~
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-org.el :mkdirp yes
+:END:
+
+*** Basics
+In this section, code blocks are tangled to ~lisp/ar-org.el~.
+This is required in ~init.el~ using the following code block.
+#+begin_src emacs-lisp :padline no :tangle init.el
+(require 'ar-org)
+#+end_src
+
+#+begin_src emacs-lisp
+;;; ar-org.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+
+(use-package org
+  :ensure nil ;; Use built-in org-mode.
+  :init
+  ;; Set directory for org files.
+  (setq org-directory "~/Dropbox/org/")
+
+  ;; Prevent adding leading whitespace in code blocks on RET/TAB.
+  (setq org-src-preserve-indentation t)
+
+  ;; Use code block language major-mode binding for TAB.
+  (setq org-src-tab-acts-natively t)
+
+  ;; Enable native syntax highlighting (fontification) in code blocks.
+  (setq org-src-fontify-natively t)
+
+  (ar/leader
+    ("o"   nil "org")
+    ("o o" #'ar/find-file-in-org-directory)
+    ("o t" #'ar/jump-to-todo-file)
+    ("o b" #'ar/jump-to-bookmarks-file)
+    ("o r" #'ar/jump-to-readinglist-file))
+
+  :config
+  (with-eval-after-load 'evil
+    (evil-define-motion ar/evil-org-top ()
+      "Find the nearest one-star heading."
+      :type exclusive
+      :jump t
+      (while (org-up-heading-safe)))
+
+    (evil-define-key '(normal visual motion) org-mode-map
+      (kbd "[ h") #'org-backward-heading-same-level
+      (kbd "] h") #'org-forward-heading-same-level
+      (kbd "[ [") #'org-previous-visible-heading
+      (kbd "] ]") #'org-next-visible-heading
+      (kbd "[ l") #'org-previous-link
+      (kbd "] l") #'org-next-link
+      (kbd "[ c") #'org-babel-previous-src-block
+      (kbd "] c") #'org-babel-next-src-block
+      (kbd "g h") #'org-up-element
+      (kbd "g l") #'org-down-element
+      (kbd "g k") #'org-backward-element
+      (kbd "g j") #'org-forward-element
+      (kbd "g H") #'ar/evil-org-top))
+
+  ;; Currently non-evil localleader.
+  (ar/localleader org-mode-map
+    ("."   #'consult-org-heading)
+    ("p"   #'org-preview-latex-fragment)
+    ("e"   #'org-export-dispatch)
+    ("a"   #'org-latex-export-to-pdf)
+    ("t"   nil "toggle")
+    ("t t" #'org-toggle-checkbox)
+    ("t l" #'org-toggle-link-display)
+    ("t i" #'org-toggle-inline-images))
+
+  ;; evil localleader hack
+  ;; (with-eval-after-load 'evil
+  ;;   (dolist (kfpair '(("."   consult-org-heading)
+  ;;                     ("p"   org-preview-latex-fragment)
+  ;;                     ("e"   org-export-dispatch)
+  ;;                     ("a"   org-latex-export-to-pdf)
+  ;;                     ("t t" org-toggle-checkbox)
+  ;;                     ("t l" org-toggle-link-display)
+  ;;                     ("t i" org-toggle-inline-images)
+  ;;                     ("p"   org-preview-latex-fragment)))
+  ;;     (let ((key  (nth 0 kfpair))
+  ;;           (func (nth 1 kfpair)))
+  ;;       (evil-define-key '(normal visual motion) org-mode-map
+  ;;         (kbd (concat "SPC m " key)) func))))
+  )
+#+end_src
+
+*** TODO Function definitions in ~ar-org-funcs.el~
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-org-funcs.el :mkdirp yes
+:END:
+
+#+begin_src emacs-lisp
+;;; ar-org-funcs.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+
+;;;###autoload
+(defun ar/find-file-in-org-directory ()
+  (interactive)
+  (let ((default-directory org-directory))
+    (call-interactively #'find-file)))
+
+;;;###autoload
+(defun ar/jump-to-todo-file ()
+  (interactive)
+  (find-file (expand-file-name "todo.org" org-directory)))
+
+;;;###autoload
+(defun ar/jump-to-bookmarks-file ()
+  (interactive)
+  (find-file (expand-file-name "bookmarks.org" org-directory)))
+
+;;;###autoload
+(defun ar/jump-to-readinglist-file ()
+  (interactive)
+  (find-file (expand-file-name "readinglist.org" org-directory)))
+
+(provide 'ar-org-funcs)
+;;; ar-org-funcs.el ends here
+#+end_src
+
+*** The ~ar-org.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-org)
+;;; ar-org.el ends here
+#+end_src
+
+* TODO The ~ar-template.el~ module
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-template.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/ar-template.el~.
+This is required in ~init.el~ using the following code block.
+#+begin_src emacs-lisp :padline no :tangle no
+(require 'ar-template)
+#+end_src
+
+As always, let's give the file a header.
+#+begin_src emacs-lisp
+;;; ar-template.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+#+end_src
+
+** The ~ar-template.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-template)
+;;; ar-template.el ends here
 #+end_src
 
 * The ~provide~ call for ~init.el~

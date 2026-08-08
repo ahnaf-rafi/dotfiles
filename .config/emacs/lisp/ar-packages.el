@@ -2,7 +2,6 @@
 
 ;;; Code:
 
-(setq elpaca-core-date '(20260605))
 (defvar elpaca-installer-version 0.12)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
