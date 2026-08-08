@@ -1,0 +1,1116 @@
+#+title: Ahnaf Rafi's Emacs Configuration
+#+author: Ahnaf Rafi
+#+property: header-args:emacs-lisp  :tangle init.el
+#+startup: overview
+#+todo: TODO(t) DOC(o) | DONE(d)
+
+* How this configuration works
+When ~ar-emacs.org~ is changed and saved, its Emacs Lisp (~elisp~) source code
+block get tangled (written) to ~early-init.el~ or ~init.el~.
+These source files are symlinked to ~$HOME/.emacs.d~ by ~stow~.
+The automatic tangling is done using a local hook; the end of ~init.org~ (see
+bottom of raw file) has the following comment block:
+#+begin_src org :tangle no
+# Local Variables:
+# eval: (add-hook 'after-save-hook #'org-babel-tangle nil t)
+# End:
+#+end_src
+
+*NOTE:*
+- Any section marked with "DOC" is in need of better documentation.
+- Any section marked with "TODO" is likely working, but has incomplete
+  configuration and/or needs refactoring.
+
+* The ~early-init.el~ file
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle early-init.el
+:END:
+The first user file Emacs loads is ~early-init.el~; it gets loaded before the
+graphical user interface (GUI).
+I use ~early-init.el~ mainly to disable some GUI elements and to defer things
+like garbage collection.
+
+** Early UI, frame and visual tweaks
+I want a minimal display setup when I start up Emacs.
+To begin, I get rid of UI elements I deem unnecessary: the menu bar, the tool
+bar and the scroll bar.
+These UI settings should also be set in frame creation parameters to ensure that
+they persist when we spawn new frames.
+To that end, we may as well set some useful frame parameters and optimizations.
+I set the
+By default, Emacs will resize the frame if you adjust the font size.
+Making ~frame-resize-pixelwise~ and ~frame-inhibit-implied-resize~ non-nil
+avoids this behavior.
+I also don't use X resources and to set frame features and hence, I set
+~inhibit-x-resources~ to non-nil as well.
+In addition, I set frame parameters ~initial-frame-alist~ and
+~default-frame-alist~ here as well, using some code I saw in
+[[https://protesilaos.com/emacs/dotemacs][Protesilaos Stavrou's]].
+The ~initial-frame-alist~ is about the first frame that is produced when
+starting Emacs.
+The ~default-frame-alist~ is for all subsequent frames.
+#+begin_src emacs-lisp
+;;; early-init.el --- -*- no-byte-compile: t; lexical-binding: t; -*-
+
+;;; Code:
+
+;; Disable unnecessary UI elements.
+(when (featurep 'menu-bar)
+  (push '(menu-bar-lines . 0) default-frame-alist)
+  (setq menu-bar-mode nil))
+
+(when (featurep 'tool-bar)
+  (push '(tool-bar-lines . 0) default-frame-alist)
+  (setq tool-bar-mode nil))
+
+(when (featurep 'scroll-bar)
+  (push '(horizontal-scroll-bars) default-frame-alist)
+  (push '(vertical-scroll-bars) default-frame-alist)
+  (setq scroll-bar-mode nil))
+
+;; Start frames maximized.
+(push '(fullscreen . maximized) default-frame-alist)
+
+;; Frame title: tell me if I am in daemon mode.
+(setq frame-title-format (if (daemonp)
+			     '("AR Emacs Daemon - %b")
+			   '("AR Emacs - %b")))
+
+;; Inhibit frame resize - also has some performance benefit.
+(setq frame-resize-pixelwise t)
+(setq frame-inhibit-implied-resize t)
+
+;; Don't use X resources, Windows Registry settings, and NS defaults.
+(setq inhibit-x-resources t)
+#+end_src
+
+Next, I get rid of the initial startup/splash screen and the initial echo area
+message; these do not contain any information useful to me.
+This means that the resulting initial buffer will be the scratch buffer; I
+further get rid of the inital message in the scratch buffer.
+#+begin_src emacs-lisp
+;; Get rid of startup/splash screen.
+(setq inhibit-startup-screen t)
+(setq inhibit-startup-buffer-menu t)
+(setq inhibit-startup-echo-area-message user-login-name) ;; Read the docstring.
+(advice-add #'display-startup-echo-area-message :override #'ignore)
+
+;; Empty scratch message.
+(setq initial-scratch-message nil)
+#+end_src
+
+Sometimes, I will have to deal with yes/no prompts early on during
+initialization.
+This can happen for example if I am starting Emacs after deleting the package
+installation directory and some package installation step requires my approval.
+I want to be able to answer with y/n instead of having to type out yes/no.
+#+begin_src emacs-lisp
+;; Use y/n responses to yes/no prompts.
+(setq use-short-answers t)
+(fset 'yes-or-no-p 'y-or-n-p)
+#+end_src
+
+** Garbage collection and other startup speed optimization
+We can raise the garbage collection variables, ~gc-cons-threshold~ and
+~gc-cons-percentage~ during startup to make Emacs start a little faster.
+As it happens, setting ~file-name-handler-alist~ and
+~vc-handled-backends~ to nil also boosts Emacs startup time.
+However, once Emacs starts up, it is a good idea to revert these variables,
+either to their original or other reasonable values.
+
+Here, I first store the "reasonable" values for the aforementioned variables,
+before setting them to their startup-speed-optimizing values.
+#+begin_src emacs-lisp
+;; Store reasonable values for `gc-cons-threshold', `gc-cons-percentage',
+;; `file-name-handler-alist' and `vc-handled-backends'.
+(defvar ar/gc-cons-threshold (* 50 1024 1024)
+  "Post-startup value for `gc-cons-threshold'.")
+
+(defvar ar/gc-cons-percentage gc-cons-percentage
+  "Post-startup value for `gc-cons-percentage'.")
+
+(defvar ar/file-name-handler-alist file-name-handler-alist
+  "Post-startup value for `file-name-handler-alist'.")
+
+(defvar ar/vc-handled-backends vc-handled-backends
+  "Post-startup value for `vc-handled-backends'.")
+
+;; Set startup-speed-optimizing values for these variables.  NOTE: The
+;; `most-positive-fixnum' is DANGEROUS AS A PERMANENT VALUE for
+;; `gc-cons-threshold'.  Similarly, `file-name-handler-alist' needs to be set
+;; properly for Emacs to work properly.
+(setq gc-cons-threshold most-positive-fixnum
+      gc-cons-percentage 0.5
+      file-name-handler-alist nil
+      vc-handled-backends nil)
+#+end_src
+Now, use ~emacs-startup-hook~ to set the more reasonable values after startup.
+#+begin_src emacs-lisp
+;; Set reasonable values for `gc-cons-threshold', `gc-cons-percentage',
+;; `file-name-handler-alist' and `vc-handled-backends' after Emacs startup.
+(add-hook 'emacs-startup-hook
+          (lambda ()
+            (setq gc-cons-threshold ar/gc-cons-threshold
+                  gc-cons-percentage ar/gc-cons-percentage
+                  file-name-handler-alist ar/file-name-handler-alist
+                  vc-handled-backends ar/vc-handled-backends)))
+#+end_src
+
+** Native compilation
+Native compilation (when available) greatly speeds up Emacs, but comes with
+verbose error reporting by default.
+I find the warnings annoying and not particularly useful.
+Thankfully, these warnings can be made silent.
+#+begin_src emacs-lisp
+;; Make native compilation silent.
+(when (native-comp-available-p)
+  (setq native-comp-async-report-warnings-errors 'silent))
+#+end_src
+
+** Disable ~package.el~
+I use [[https://github.com/progfolio/elpaca][Elpaca]] for package management,
+and not the built-in ~package.el~.
+So I disable ~package.el~ here.
+#+begin_src emacs-lisp
+(setq package-enable-at-startup nil)
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
+;; TODO: Remove please.
+(which-key-add-keymap-based-replacements org-mode-map "SPC m t" "toggle")
+#+end_src
+
+** Add configuration lisp modules/libraries to ~load-path~
+I break my configuration henceforth into modules that reside in a directory
+specified by ~ar/emacs-lisp-dir~.
+Here, I set this to be the ~lisp/~ subdirectory of ~user-emacs-directory~.
+These modules are then called in ~init.el~ via a ~require~ call.
+The following block defines ~ar/emacs-lisp-dir~ and then adds it to the
+~load-path~ variable.
+#+begin_src emacs-lisp
+(defconst ar/emacs-lisp-dir (expand-file-name "lisp" user-emacs-directory)
+  "Directory to hold personal elisp modules and libraries.")
+
+;; Add lisp directory to `load-path'.
+(add-to-list 'load-path ar/emacs-lisp-dir)
+#+end_src
+
+** Autoloads
+Some of the lisp files in ~ar/emacs-lisp-dir~ (the ones ending in ~funcs~ for
+example) will contain functions to be autoloaded.
+Let's first define a constant to contain the path of the autoloads file:
+#+begin_src emacs-lisp
+(defconst ar/emacs-lisp-autoloads
+  (expand-file-name "ar-autoloads.el" ar/emacs-lisp-dir)
+  "Personal autoloads file.")
+#+end_src
+Autoloads can then be generated using in that directory can be generated using
+the following snippet.
+#+begin_src emacs-lisp
+(defun ar/generate-autoloads-for-config-and-load ()
+  "Generate autoloads from lisp files in `ar/emacs-lisp-dir' and put them in
+  `ar/emacs-lisp-autoloads'."
+  (interactive)
+  (if (file-exists-p ar/emacs-lisp-autoloads)
+      (progn
+        (delete-file ar/emacs-lisp-autoloads)
+        (message "Deleted existing autoload file: %s" ar/emacs-lisp-autoloads)))
+  (loaddefs-generate ar/emacs-lisp-dir ar/emacs-lisp-autoloads)
+  (message "Generated autoloads in %s" ar/emacs-lisp-autoloads)
+  (load ar/emacs-lisp-autoloads)
+  (message "Loaded autoloads in %s" ar/emacs-lisp-autoloads))
+#+end_src
+
+The ~ar-autoloads~ file is loaded if it exists as follows.
+#+begin_src emacs-lisp
+(if (file-exists-p ar/emacs-lisp-autoloads)
+    (load ar/emacs-lisp-autoloads)
+  (warn (concat "Autoloads file" ar/emacs-lisp-autoloads " not found."
+                " Some keybindings/commands may not be well-defined."
+                " Use ar/generate-autoloads-for-config-load to generate "
+                ar/emacs-lisp-autoloads " and load it.")))
+#+end_src
+
+** Init time and package count helpers
+Shamelessly stolen from ~dashboard-widgets.el~ in
+[[https://github.com/emacs-dashboard/emacs-dashboard][~emacs-dashboard~]].
+#+begin_src emacs-lisp
+(defun ar/emacs-init-time ()
+  "Return Emacs starting time in string including seconds ending."
+  (if (fboundp 'elpaca--queued)
+      (format "%s seconds"
+              (float-time (time-subtract elpaca-after-init-time
+                                         before-init-time)))
+    (emacs-init-time)))
+
+(defun ar/packages-count ()
+  "Get the intalled package count depending on package manager.
+Supported package managers are: package.el, straight.el and elpaca.el."
+  (let* ((package-count (if (bound-and-true-p package-alist)
+                            (length package-activated-list)
+                          0))
+         (straight-count (if (boundp 'straight--profile-cache)
+                             (hash-table-count straight--profile-cache)
+                           0))
+         (elpaca-count (if (fboundp 'elpaca--queued)
+                           (length (elpaca--queued))
+                         0)))
+    (+ package-count straight-count elpaca-count)))
+
+(defun ar/init--info ()
+  "Format init message.
+Use `ar/emacs-init-time', `ar/package-count' and `gcs-done' to generate
+init message."
+  (let* ((msg-init (format "Emacs started in %s with %d garbage collections."
+                           (ar/emacs-init-time) gcs-done))
+         (packages-count (ar/packages-count))
+         (msg (if (zerop packages-count)
+                  msg-init
+                (concat msg-init
+                        (format " %d packages installed." packages-count)))))
+    (message msg)))
+
+(add-hook 'after-init-hook #'ar/init--info)
+#+end_src
+
+** Footer
+#+begin_src emacs-lisp
+(provide 'early-init)
+;;; early-init.el ends here
+#+end_src
+
+* The ~init.el~ file
+** Personal details
+The variables ~user-full-name~ and ~user-mail-address~ are useful for a number
+of things, e.g. automatically inserting the user's real-world name and email
+address into documents, emails, and configuration files.
+#+begin_src emacs-lisp
+;;; init.el --- -*- no-byte-compile: t; lexical-binding: t; -*-
+
+;;; Code:
+
+;; Personal details
+(setq user-full-name "Ahnaf Rafi")
+(setq user-mail-address "ahnaf.al.rafi@gmail.com")
+#+end_src
+
+** UTF-8 encoding
+UTF-8 encoding has become the universal standard for representing a vast range
+of characters and symbols used in modern global communication and computing.
+#+begin_src emacs-lisp
+;; UTF-8
+(when (fboundp 'set-charset-priority)
+  (set-charset-priority 'unicode))
+(prefer-coding-system 'utf-8)
+(setq locale-coding-system 'utf-8)
+(setq selection-coding-system 'utf-8)
+#+end_src
+
+** Some quality of life adjustments to Emacs defaults
+The ~ring-bell-function~ is a variable that determines how Emacs signals alerts
+for events like hitting the edge of a buffer.
+Here, I am opting for an interruption-free experience using a "no operation"
+function to completely silencing both the default audio beep and any screen flash.
+#+begin_src emacs-lisp
+;; Disable the alarm bell
+(setq ring-bell-function 'ignore)
+#+end_src
+
+The following seems sensible: I am asking Emacs not to add duplicates to the
+clipboard/kill-ring.
+#+begin_src emacs-lisp
+;; Don't add duplicates to clipboard/kill-ring.
+(setq kill-do-not-save-duplicates t)
+#+end_src
+
+I don't have any real need for Emacs' backup and lock files features.
+I do however like the security of the auto-save feature, albeit with a slight
+adjustment to the auto-save file-naming convention.
+#+begin_src emacs-lisp
+;; Disable backups and lockfiles.
+(setq make-backup-files nil)
+(setq create-lockfiles nil)
+
+;; Enable auto-saves.
+(setq auto-save-default t)
+(setq auto-save-file-name-transforms
+      `((,"\\`/[^/]*:\\([^/]*/\\)*\\([^/]*\\)\\'"
+         ;; Prefix tramp auto-saves to prevent conflicts.
+         ,(concat auto-save-list-file-prefix "tramp-\\2") t)
+        (".*" ,auto-save-list-file-prefix t)))
+#+end_src
+
+Finally, I don't really use Emacs' ~customize~ interface for any customization.
+However, some packages will litter ~init.el~ if ~custom-file~ is not set.
+Thus, I set it to store these temporary settings, and load them.
+#+begin_src emacs-lisp
+;; Set file for custom.el to use --- I use this for temporary customizations.
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+;; Load the custom file.
+(load custom-file 'noerror 'nomessage)
+#+end_src
+
+* The ~ar-packages.el~ module for package management
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-packages.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/ar-packages.el~.
+This is required in ~init.el~ using the following code block.
+#+begin_src emacs-lisp :tangle init.el
+(require 'ar-packages)
+#+end_src
+
+We start with the header for ~lisp/ar-packages.el~.
+#+begin_src emacs-lisp
+;;; ar-packages.el --- -*- no-byte-compile: t; lexical-binding: t; -*-
+
+;;; Code:
+#+end_src
+Note the ~no-byte-compile~ flag is non-nil.
+This is because I use Elpaca to manage my packages, it does not seem to play
+nicely with byte-compilation.
+
+** [[https://github.com/progfolio/elpaca][Elpaca]]
+As stated before, I use [[https://github.com/progfolio/elpaca][Elpaca]] for package management, and not the built-in
+~package.el~.
+The following code block
+Here is the code snippet to bootstrap Elpaca (copied directly from the GitHub
+repo).
+#+begin_src emacs-lisp
+(setq elpaca-core-date '(20260605))
+(defvar elpaca-installer-version 0.12)
+(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+(defvar elpaca-sources-directory (expand-file-name "sources/" elpaca-directory))
+(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+                              :ref nil :depth 1 :inherit ignore
+                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                              :build (:not elpaca-activate)))
+(let* ((repo  (expand-file-name "elpaca/" elpaca-sources-directory))
+       (build (expand-file-name "elpaca/" elpaca-builds-directory))
+       (order (cdr elpaca-order))
+       (default-directory repo))
+  (add-to-list 'load-path (if (file-exists-p build) build repo))
+  (unless (file-exists-p repo)
+    (make-directory repo t)
+    (when (<= emacs-major-version 28) (require 'subr-x))
+    (condition-case-unless-debug err
+        (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+                                                  ,@(when-let* ((depth (plist-get order :depth)))
+                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
+                                                  ,(plist-get order :repo) ,repo))))
+                  ((zerop (call-process "git" nil buffer t "checkout"
+                                        (or (plist-get order :ref) "--"))))
+                  (emacs (concat invocation-directory invocation-name))
+                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                        "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                  ((require 'elpaca))
+                  ((elpaca-generate-autoloads "elpaca" repo)))
+            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+          (error "%s" (with-current-buffer buffer (buffer-string))))
+      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+  (unless (require 'elpaca-autoloads nil t)
+    (require 'elpaca)
+    (elpaca-generate-autoloads "elpaca" repo)
+    (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
+(add-hook 'after-init-hook #'elpaca-process-queues)
+(elpaca `(,@elpaca-order))
+#+end_src
+
+** ~use-package~
+I then use the built-in ~use-package~ to simultaneously install external
+packages and configure both built-in and external packages I use.
+Under ~package.el~, adding the ~:ensure t~ argument to a ~use-package~ call or
+setting ~use-package-always-ensure~ to ~t~ will automatically install an
+external package if it is not already installed.
+The following code block installs ~elpaca-use-package~ and enables
+~elpaca-use-package-mode~.
+#+begin_src emacs-lisp
+;; Install use-package support.
+(elpaca elpaca-use-package
+  ;; Enable use-package :ensure support for Elpaca.
+  (elpaca-use-package-mode))
+#+end_src
+Now, I set two ~use-package~ variables to ~t~: ~use-package-always-ensure~ and
+~use-package-always-defer~.
+I have already described the former.
+The variable ~use-package-always-defer~ asks ~use-package~ to always lazy-load
+packages.
+This prevents packages from loading immeidately at Emacs startup (unless we
+supply a ~:demand t~ argument to the ~use-package~ call).
+When deferred, the package is only loaded when one of its autoloaded functions
+is called by the user.
+#+begin_src emacs-lisp
+(setq use-package-always-ensure t)
+(setq use-package-always-defer t)
+#+end_src
+
+** The ~ar-packages.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-packages)
+;;; ar-packages.el ends here
+#+end_src
+
+* The ~ar-visuals.el~ module for Emacs' visual elements
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-visuals.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/ar-visuals.el~.
+This is required in ~init.el~ using the following code block.
+#+begin_src emacs-lisp :padline no :tangle init.el
+(require 'ar-visuals)
+#+end_src
+
+#+begin_src emacs-lisp
+;;; ar-visuals.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+#+end_src
+
+** Font
+I use the ~JuliaMono~ font.
+#+begin_src emacs-lisp
+(add-to-list 'default-frame-alist '(font . "JuliaMono-12"))
+(set-face-attribute 'default nil :font "JuliaMono-12")
+#+end_src
+** Theme
+I set a variable called ~ar/use-dark-theme~ which tells Emacs whether a dark or
+light theme will be used.
+#+begin_src emacs-lisp
+(defvar ar/use-dark-theme t
+  "Use dark theme if `t' otherwise, use light theme")
+#+end_src
+I like the [[https://protesilaos.com/emacs/modus-themes][Modus Themes]] by
+Protesilaos Stavrou; these are both great and built-in with more recent versions
+of Emacs.
+The following snippet loads the variant according to ~ar/use-dark-theme~, after
+setting some theme-specific variables.
+#+begin_src emacs-lisp
+(mapc #'disable-theme custom-enabled-themes)
+(require-theme 'modus-themes)
+(setq modus-themes-org-blocks 'gray-background)
+(setq modus-themes-disable-other-themes t)
+
+(if ar/use-dark-theme
+    (modus-themes-load-theme 'modus-vivendi-tinted)
+  (modus-themes-load-theme 'modus-operandi-tinted))
+#+end_src
+
+** ~hl-todo~
+This adds additional highlighting for TODO keywords.
+#+begin_src emacs-lisp
+(use-package hl-todo
+  :init
+  (dolist (hook '(prog-mode-hook tex-mode-hook markdown-mode-hook))
+    (add-hook hook #'hl-todo-mode))
+
+  ;; Stolen from doom-emacs: modules/ui/hl-todo/config.el
+  (setq hl-todo-highlight-punctuation ":")
+  (setq hl-todo-keyword-faces
+        '(;; For reminders to change or add something at a later date.
+          ("TODO" warning bold)
+          ;; For code (or code paths) that are broken, unimplemented, or slow,
+          ;; and may become bigger problems later.
+          ("DOC" warning bold)
+          ;; For code (or code paths) that are broken, unimplemented, or slow,
+          ;; and may become bigger problems later.
+          ("FIXME" error bold)
+          ;; For code that needs to be revisited later, either to upstream it,
+          ;; improve it, or address non-critical issues.
+          ("REVIEW" font-lock-keyword-face bold)
+          ;; For code smells where questionable practices are used
+          ;; intentionally, and/or is likely to break in a future update.
+          ("HACK" font-lock-constant-face bold)
+          ;; For sections of code that just gotta go, and will be gone soon.
+          ;; Specifically, this means the code is deprecated, not necessarily
+          ;; the feature it enables.
+          ("DEPRECATED" font-lock-doc-face bold)
+          ;; Extra keywords commonly found in the wild, whose meaning may vary
+          ;; from project to project.
+          ("NOTE" success bold)
+          ("BUG" error bold)
+          ("XXX" font-lock-constant-face bold))))
+#+end_src
+
+** Icons with ~nerd-icons.el~
+#+begin_src emacs-lisp
+(use-package nerd-icons)
+#+end_src
+
+** The ~ar-visuals.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-visuals)
+;;; ar-visuals.el ends here
+#+end_src
+
+* DOC ~ar-leader.el~ library for leader and localleader implementation
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-leader.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/ar-leader.el~.
+The library implements
+This is required in ~init.el~ using the following code block.
+#+begin_src emacs-lisp :padline no :tangle init.el
+(require 'ar-leader)
+
+(ar/leader-override-mode 1)
+#+end_src
+
+** DOC Library header
+#+begin_src emacs-lisp
+;;; ar-leader.el --- Leader keybindings -*- lexical-binding: t; -*-
+
+;; Copyright (C) 2026  Ahnaf Rafi
+
+;; Author: Ahnaf Rafi <ahnaf.al.rafi@gmail.com>
+;; Maintainer: Ahnaf Rafi <ahnaf.al.rafi@gmail.com>
+;; Created: 2026-02-20
+;; Version: 0.1.0
+;; Package-Requires: ((emacs "27.1"))
+;; Keywords: convenience, keybindings, evil
+;; URL: https://github.com/ahnaf-rafi/dotfiles
+;;
+;; SPDX-License-Identifier: MIT
+
+;; This file is not part of GNU Emacs.
+
+;;; Commentary:
+
+;;; Code:
+
+(defgroup ar nil
+  "Ahnaf Rafi's personal Emacs configuration."
+  :group 'convenience)
+#+end_src
+
+** DOC A string to list coercion helper.
+#+begin_src emacs-lisp
+(defun ar--string-to-list-coerce (val)
+  "Return VAL as a list of strings, whether it is a string or list of strings."
+  (if (stringp val) (list val) val))
+#+end_src
+
+** DOC The override minor mode definition
+#+begin_src emacs-lisp
+(defvar ar/leader-override-mode-map (make-sparse-keymap)
+  "Keymap for `ar/leader-override-mode', inserted via `emulation-mode-map-alists'.")
+
+(defun ar/leader-override-mode--setup-buffer ()
+  "Install `ar/leader-override-mode-map' in this buffer's emulation alist."
+  ;; Set up buffer-local precedence
+  (setq-local ar/maps-alist
+              `((ar/leader-override-mode . ,ar/leader-override-mode-map)))
+  (put 'ar/maps-alist 'permanent-local t))
+
+;;;; High-precedence leader override mode (emulation-mode-map-alists).
+(define-minor-mode ar/leader-override-mode
+  "Global leader override mode using `emulation-mode-map-alists'.
+
+When enabled, `ar/leader-override-mode-map' is inserted into Emacs’s key lookup
+precedence via `emulation-mode-map-alists' which has high-precedence."
+  :lighter ""
+  :global t
+  (if ar/leader-override-mode
+      (progn
+        (add-hook 'after-change-major-mode-hook
+                  #'ar/leader-override-mode--setup-buffer)
+        (add-to-list 'emulation-mode-map-alists 'ar/maps-alist)
+        (dolist (prefix-key (ar--string-to-list-coerce ar/leader-prefix-emacs))
+          (define-key ar/leader-override-mode-map
+                      (kbd prefix-key)
+                      (cons "<leader>" ar/leader-map)))
+        (with-eval-after-load 'evil
+          (dolist (prefix-key (ar--string-to-list-coerce ar/leader-prefix-evil))
+            (evil-define-key '(normal visual motion) ar/leader-override-mode-map
+              (kbd prefix-key) ar/leader-map)))
+        ;; Cover the current buffer immediately.
+        (ar/leader-override-mode--setup-buffer))
+    (progn
+
+      ;; (dolist (prefix-key ar/leader-prefix-evil)
+      ;;   (define-key mode-specific-map
+      ;;               (kbd prefix-key) nil))
+      (remove-hook 'after-change-major-mode-hook
+                   #'ar/leader-override-mode--setup-buffer)
+      ;; Cleanup when toggled off
+      (setq emulation-mode-map-alists (delq 'ar/maps-alist
+                                            emulation-mode-map-alists)))))
+#+end_src
+
+** DOC Leader keymap
+#+begin_src emacs-lisp
+;;;; Leader map
+(defvar ar/leader-map (make-sparse-keymap)
+  "Keymap for leader bindings.")
+#+end_src
+
+** DOC A DRY core compile-time binding expansion macro without evil
+#+begin_src emacs-lisp
+(defun ar--single-step-from-binding (map entry &optional key-transformer)
+  "Return a single `define-key' or `which-key' form for ENTRY against MAP.
+KEY-TRANSFORMER, if non-nil, is a function applied to the key string before
+expansion. E.g. (lambda (k) (concat \"C-c l \" k)) prefixes every key."
+  (let ((key-transform (or key-transformer #'identity)))
+    (pcase entry
+      ;; (KEY nil DESC) -- Prefix label only, no binding.
+      ;; Registers a display name for a prefix key in which-key without
+      ;; binding anything. E.g. ("f" nil "file") makes SPC f show
+      ;; "file" in the which-key popup.
+      (`(,(and key (pred stringp)) nil ,(and desc (pred stringp)))
+       (let ((key (funcall key-transform key)))
+         `(with-eval-after-load 'which-key
+            (which-key-add-keymap-based-replacements ,map ,key ,desc))))
+      ;; (KEY CMD DESC) -- Binding with a label.
+      ;; Binds KEY to a cons of (DESC . CMD), which Emacs treats as a
+      ;; menu item: CMD is what runs, DESC is what which-key and
+      ;; describe-key show. E.g. ("b" #'switch-to-buffer "Switch buffer").
+      (`(,(and key (pred stringp)) ,cmd ,(and desc (pred stringp)))
+       (let ((key (funcall key-transform key)))
+         `(define-key ,map ,(kbd key) (cons ,desc ,cmd))))
+      ;; (KEY CMD) -- Plain binding, no label.
+      ;; Binds KEY directly to CMD with no description attached.
+      ;; E.g. (";" #'execute-extended-command).
+      (`(,(and key (pred stringp)) ,cmd)
+       (let ((key (funcall key-transform key)))
+         `(define-key ,map ,(kbd key) ,cmd)))
+      ;; Anything else is a malformed entry -- error at expansion time.
+      (_ (error "ar--single-step-from-binding: malformed entry %S" entry)))))
+
+(defun ar--steps-from-bindings (map bindings &optional key-transformer)
+  "Expand BINDINGS into flat `define-key' or
+`which-key-add-keymap-based-replacements' forms against MAP (a symbol).
+BINDINGS is a literal list of entries. Each entry is one of:
+  (KEY CMD)       -> (define-key MAP (kbd KEY) CMD)
+  (KEY CMD DESC)  -> (define-key MAP (kbd KEY) (cons DESC CMD))
+  (KEY nil DESC)  -> (with-eval-after-load 'which-key
+                       (which-key-add-keymap-based-replacements MAP KEY DESC))
+KEY must be a string literal. CMD is a command (quoted symbol or lambda).
+DESC is a string label, used either for which-key or as a menu-item name.
+KEY-TRANSFORMER, if non-nil, is a function applied to each key string before
+expansion. E.g. (lambda (k) (concat \"C-c l \" k)) prefixes every key."
+  (mapcar (lambda (entry)
+            (ar--single-step-from-binding map entry key-transformer))
+          bindings))
+#+end_src
+
+** DOC The ~ar/leader~ macro
+*** DOC Customization group for ~leader~ prefixes
+#+begin_src emacs-lisp
+(defcustom ar/leader-prefix-emacs '("C-c l")
+  "Emacs-style prefix keys bound to the leader map."
+  :type '(choice string (repeat string))
+  :group 'ar)
+
+(defcustom ar/leader-prefix-evil '("SPC")
+  "Evil-style prefix keys bound to the leader map."
+  :type '(choice string (repeat string))
+  :group 'ar)
+#+end_src
+
+*** The macro
+#+begin_src emacs-lisp
+(defmacro ar/leader (&rest bindings)
+  "Define bindings in `ar/leader-map'.
+
+Each binding is one of:
+  (KEY CMD)       -> (define-key ar/leader-map (kbd KEY) CMD)
+  (KEY CMD DESC)  -> (define-key ar/leader-map (kbd KEY) (cons DESC CMD))
+  (KEY nil DESC)  -> which-key label for KEY in ar/leader-map"
+  (declare (indent 0))
+  (let ((steps (ar--steps-from-bindings 'ar/leader-map bindings)))
+    `(progn ,@steps)))
+
+;; <leader> key definitions, keymap and trigger bindings
+;; (defconst ar/leader-key                "SPC")
+;; (defconst ar/leader-key-C-c            "l")
+
+;; Create keybinds in ar/leader-override-mode-map and in mode-specific-map.
+;; (dolist (prefix-key ar/leader-prefix-emacs) a)
+
+;; (define-key mode-specific-map
+;;             (kbd ar/leader-prefix-emacs-C-c) (cons "<leader>" ar/leader-map))
+;; (with-eval-after-load 'evil
+;;   (evil-define-key '(normal visual motion) 'ar/leader-override-mode-map
+;;     (kbd ar/leader-key) ar/leader-map)
+;;   (evil-define-key '(insert emacs) 'ar/leader-override-mode-map
+;;     (kbd ar/leader-key-alt) ar/leader-map))
+#+end_src
+
+** DOC The ~ar/localleader~ macro
+*** DOC Customization group for ~localleader~ prefixes
+#+begin_src emacs-lisp
+(defcustom ar/localleader-prefix-emacs '("C-c m" "M-.")
+  "Emacs-style prefix keys bound to the local leader map."
+  :type '(choice string (repeat string))
+  :group 'ar)
+
+(defcustom ar/localleader-prefix-evil '("SPC m" ".")
+  "Evil-style prefix keys bound to the local leader map."
+  :type '(choice string (repeat string))
+  :group 'ar)
+#+end_src
+
+*** DOC Get ~localleader~ prefix-command symbol from a major-mode map symbol
+#+begin_src emacs-lisp
+(defun ar--localleader-prefix-command-sym (map)
+  "Derive the local leader prefix command symbol for MAP.
+E.g. Gives ar/localleader-julia-mode-map when input is julia-mode-map."
+  (intern (concat "ar/localleader-" (symbol-name map))))
+#+end_src
+
+*** DOC Helpers for ~localleader~ prefix-command existence and ensuring
+#+begin_src emacs-lisp
+(defun ar/prefix-command-p (sym)
+  "Return non-nil if SYM is a prefix command."
+  (and (symbolp sym)
+       (fboundp sym)
+       (keymapp (symbol-function sym))))
+
+(defun ar--localleader-ensure-prefix-command (map)
+  "Create the prefix command for MAP if it doesn't exist yet. Return its symbol."
+  (let ((prefix-cmd (ar--localleader-prefix-command-sym map)))
+    (unless (ar/prefix-command-p prefix-cmd)
+      (define-prefix-command prefix-cmd))
+    prefix-cmd))
+#+end_src
+
+*** DOC The macro
+#+begin_src emacs-lisp
+(defmacro ar/localleader (map &rest bindings)
+  (declare (indent 1))
+  (let* ((prefix-cmd (ar--localleader-ensure-prefix-command map))
+         (steps (ar--steps-from-bindings prefix-cmd bindings)))
+    `(progn
+       ;; Emacs-style: bind prefix keys in the mode map once it's available.
+       (when (boundp ',map)
+         (dolist (keypref (ar--string-to-list-coerce ar/localleader-prefix-emacs))
+           (define-key ,map (kbd keypref) ',prefix-cmd)))
+       ;; Evil-style: deferred until evil is loaded.
+       (with-eval-after-load 'evil
+         (dolist (keypref (ar--string-to-list-coerce ar/localleader-prefix-evil))
+           (evil-define-key* '(normal visual motion) ,map
+             (kbd keypref) ',prefix-cmd)))
+       ;; Individual key bindings into the prefix command's keymap.
+       ,@steps)))
+#+end_src
+
+** The ~ar-leader.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-leader)
+;;; ar-leader.el ends here
+#+end_src
+
+* TODO The ~ar-keybind.el~ module for dealing with keybindings
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-keybind.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/ar-keybind.el~ or to the
+submodule ~lisp/ar-keybind-funcs.el~.
+This is required in ~init.el~ using the following code block.
+#+begin_src emacs-lisp :padline no :tangle init.el
+(require 'ar-keybind)
+#+end_src
+
+As always, let's give the file a header.
+#+begin_src emacs-lisp
+;;; ar-keybind.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+#+end_src
+
+** The ~ar-keybind.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-keybind)
+;;; ar-keybind.el ends here
+#+end_src
+
+* The ~ar-ui.el~ module for user interface settings
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-ui.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/ar-ui.el~.
+This is required in ~init.el~ using the following code block.
+#+begin_src emacs-lisp :padline no :tangle init.el
+(require 'ar-ui)
+#+end_src
+
+As always, let's give the file a header.
+#+begin_src emacs-lisp
+;;; ar-ui.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+#+end_src
+
+** No blinking cursors
+I don't like blinking cursors, and so I disable this feature as follows.
+Note that setting ~visible-cursor~ to ~nil~ is required to prevent blinking in
+terminal mode.
+#+begin_src emacs-lisp
+;; No blinking cursors in GUI.
+(when (fboundp 'blink-cursor-mode)
+  (blink-cursor-mode -1))
+
+;; No blinking cursors in terminal.
+(setq visible-cursor nil)
+#+end_src
+
+** No dialog boxes
+This forces Emacs to use the minibuffer for prompts instead of dialog boxes.
+#+begin_src emacs-lisp
+;; (setq use-dialog-box nil)
+#+end_src
+
+** No tooltips, use echo area
+These commands disable graphical hover-text (tooltips) in favor of the echo area
+(the status line at the bottom).
+#+begin_src emacs-lisp
+(setq x-gtk-use-system-tooltips nil)
+(when (fboundp 'tooltip-mode)
+  (tooltip-mode -1))
+#+end_src
+
+** Modeline
+*** Base modeline settings
+This snippet provides a reasonable defaults for the basic modeline:
+- Displays buffer size.
+- Displays line number and column number of cursor.
+#+begin_src emacs-lisp
+(size-indication-mode t)
+(line-number-mode t)
+(column-number-mode t)
+#+end_src
+
+*** ~doom-modeline~
+For a more beautiful modeline that gets the job done, I use doom-modeline.
+#+begin_src emacs-lisp
+(use-package doom-modeline
+  :init
+  (setq doom-modeline-buffer-file-name-style 'file-name)
+  (doom-modeline-mode 1))
+#+end_src
+
+*** ~hide-mode-line~
+For some Emacs modes, the modeline is unnecessary and can be hidden with the
+~hide-mode-line~ package.
+#+begin_src emacs-lisp
+(use-package hide-mode-line
+  :hook (completion-list-mode . hide-mode-line-mode))
+#+end_src
+
+** Quitting Emacs
+I don't need to confirm each time I call kill-emacs.
+The following setting disables the confirmation request behavior when quitting
+emacs.
+#+begin_src emacs-lisp
+;; Don't require confirmation every time when quitting.
+(setq confirm-kill-emacs nil)
+#+end_src
+
+Here is a quick leader keybind to save my buffers and then quit emacs.
+#+begin_src emacs-lisp
+(ar/leader
+  ("q"   nil                       "Quit")
+  ("q K" #'save-buffers-kill-emacs "Save buffers and kill emacs"))
+#+end_src
+
+** The ~ar-ui.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-ui)
+;;; ar-ui.el ends here
+#+end_src
+
+* The ~ar-editor.el~ module for the editing interface
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-editor.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/ar-editor.el~.
+This is required in ~init.el~ using the following code block.
+#+begin_src emacs-lisp :padline no :tangle init.el
+(require 'ar-editor)
+#+end_src
+
+As always, let's give the file a header.
+#+begin_src emacs-lisp
+;;; ar-editor.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+#+end_src
+
+** Line numbers
+I like line numbers pretty much everywhere.
+While we are at it, let's make them relative visual line numbers, i.e. when a
+long line is broken, the visual segments get treated as additional lines when
+counting relative lines.
+#+begin_src emacs-lisp
+(setq display-line-numbers-type 'visual)
+#+end_src
+
+** Fill-column indicator and dealing with long lines
+The following declares 80 character lines as the default setting for long lines.
+The call to ~setq-default~ ensures that the value is set as a default value that
+major modes can override if needed.
+#+begin_src emacs-lisp
+(setq-default fill-column 80)
+#+end_src
+Here, I am asking Emacs to display a boundary to demarcate 80 character lines
+in ~prog~ and ~text~ major modes.
+#+begin_src emacs-lisp
+(dolist (hook '(prog-mode-hook text-mode-hook))
+  (add-hook hook #'display-line-numbers-mode)
+  (add-hook hook #'display-fill-column-indicator-mode))
+#+end_src
+
+In addition, we wrap long lines.
+#+begin_src emacs-lisp
+;; Long lines
+(setq-default word-wrap t)
+(add-hook 'after-init-hook #'global-visual-line-mode)
+#+end_src
+In many ~text~ major modes (e.g. ~tex-mode~, ~typst-ts-mode~, ~org-mode~), I
+use ~auto-fill-mode~ via the major mode hook --- I don't enable the minor mode
+globally.
+
+** Scrolling
+This configures "smooth scrolling", forcing Emacs to scroll line-by-line rather
+than jumping half a screen when the cursor hits the edge.
+#+begin_src emacs-lisp
+;; Make scrolling smooth; no jumps.
+(setq-default scroll-margin 0)
+(setq-default scroll-step 1)
+(setq-default scroll-preserve-screen-position nil)
+(setq-default scroll-conservatively 10000)
+(setq-default auto-window-vscroll nil)
+#+end_src
+
+** Undo
+For Emacs major versions 28 or greater, there is a built-in ~undo-redo~ package
+to handle undo and redo.
+This code block sets that as the undo system for ~evil-mode~.
+#+begin_src emacs-lisp
+(with-eval-after-load 'evil
+  (evil-set-undo-system 'undo-redo))
+#+end_src
+
+** Indentation
+I generally prefer to use spaces for indentation rather than tabs.
+The following makes spaces for indentation default, but allows for a major mode
+to override the setting when needed.
+#+begin_src emacs-lisp
+;; Indentation widths
+(setq-default indent-tabs-mode nil)
+#+end_src
+I also generally prefer two-space indentation.
+Again, the following makes that default, while allowing for major modes to
+override as needed (e.g. ~python-mode~ or its tree-sitter based counterpart can
+set four-space indentation).
+#+begin_src emacs-lisp
+;; Indentation widths
+(setq-default standard-indent 2)
+(setq-default tab-width 2)
+(setq-default evil-shift-width standard-indent)
+#+end_src
+I really dislike automatic reindentation (e.g. on hitting ~RET~), and disable
+this by default.
+#+begin_src emacs-lisp
+;; Disable electric-indent
+(setq-default electric-indent-inhibit t)
+#+end_src
+Finally for long lines, I prefer wrapped text to be aligned exactly with the
+start of the text on the first line, with no extra offset.
+By default, Emacs will have wrapped continuation lines start from the very left
+of the buffer.
+The desired behavior can be achieved with the ~adaptive-wrap~ package, and by
+setting the ~adaptive-wrap-extra-indent~ variable to zero to ensure no extra
+offset.
+#+begin_src emacs-lisp
+;; Use adaptive-wrap to adapt indentation in wrapped lines
+(use-package adaptive-wrap
+  :init
+  ;; Ensure no extra offset by default.
+  (setq-default adaptive-wrap-extra-indent 0))
+#+end_src
+
+** Whitespaces
+The following snippet shows trailing whitespace and highlights them according to
+~trailing-whitespace~.
+#+begin_src emacs-lisp
+;; Show trailing whitespaces.
+(setq-default show-trailing-whitespace t)
+#+end_src
+The following snippet adds a hook to delete trailing whitespaces before saving a
+buffer.
+#+begin_src emacs-lisp
+;; Delete trailing whitespaces before saving.
+(add-hook 'before-save-hook #'delete-trailing-whitespace)
+#+end_src
+
+This snippet manages whether Emacs automatically adds a newline (~\n~) to the
+end of a file when you save it.
+It relaxes the global rule to avoid adding newlines on save, but allows specific
+programming modes to enforce adding newlines if necessary.
+#+begin_src emacs-lisp
+;; New lines at EOF
+(setq-default require-final-newline nil)
+(setq-default mode-require-final-newline t)
+(setq-default log-edit-require-final-newline nil)
+#+end_src
+
+** Parentheses
+This snippet configures and activates ~show-paren-mode~ which visually
+highlights matching parentheses, braces, and brackets as the cursor moves.
+#+begin_src emacs-lisp
+;; Make parenthesis highlighting instantaneous.
+(setq show-paren-delay 0)
+;; Highlight opening parenthesis even when cursor is on closing one.
+(setq show-paren-highlight-openparen t)
+;; Highlight when cursor is inside the parenthesis as well as outside.
+(setq show-paren-when-point-inside-paren t)
+;; Highlight when the cursor is in the "periphery" (e.g., at the end of a line
+;; that ends with a parenthesis).
+(setq show-paren-when-point-in-periphery t)
+(add-hook 'after-init-hook #'show-paren-mode)
+#+end_src
+
+Enabling ~electric-pair-mode~ provides functionalities such as:
+- Automatic closing of parenthesis pairs when an opening character is typed
+  i.e. "| -> press ( -> (|)";
+- Automatically deleting the closing parenthesis if the opening character is
+  deleted, i.e. "(|) -> press backspace -> |".
+#+begin_src emacs-lisp
+;; Enable `electric-pair-mode'
+(add-hook 'after-init-hook #'electric-pair-mode)
+#+end_src
+
+I further use ~evil-surround~ which is a package that emulates ~surround.vim~.
+I enable this mode globally.
+#+begin_src emacs-lisp
+;; evil-surround
+(use-package evil-surround
+  :init
+  ;; Enable evil-surround globally.
+  (global-evil-surround-mode 1))
+#+end_src
+
+** The ~ar-editor.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-editor)
+;;; ar-editor.el ends here
+#+end_src
+
+* The ~provide~ call for ~init.el~
+#+begin_src emacs-lisp
+(provide 'init)
+;;; init.el ends here
+#+end_src
+
+* Local variables
+# Local Variables:
+# eval: (add-hook 'after-save-hook #'org-babel-tangle nil t)
+# End:
