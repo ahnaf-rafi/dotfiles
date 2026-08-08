@@ -37,7 +37,7 @@ hl.bind(mainMod .. " + F", hl.dsp.exec_cmd(fileManager))
 --- Launcher binds
 hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd(desktop_menu))
 hl.bind(mainMod .. " + SHIFT + Space", hl.dsp.exec_cmd(exec_menu))
-hl.bind("Alt + Tab", hl.dsp.exec_cmd(window_menu))
+hl.bind("ALT + Tab", hl.dsp.exec_cmd(window_menu))
 
 --- Window orientation toggles
 hl.bind(mainMod .. " + E", hl.dsp.layout("togglesplit"))  -- dwindle only
