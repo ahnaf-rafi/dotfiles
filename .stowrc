@@ -5,10 +5,8 @@
 --ignore=^\.gitignore$
 --ignore=^LICENSE$
 --ignore=^README\.org$
---ignore=^bootstrap\.sh$
---ignore=^packages$
---ignore=^hosts$
---ignore=^systems$
+--ignore=^setup-instructions\.org$
+--ignore=^zipper\.sh$
 --ignore=^\.config/emacs/ar-emacs\.org$
 --ignore=^\.config/emacs/.*\.org$
 --ignore=^.*tmp.*$
