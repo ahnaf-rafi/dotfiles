@@ -4,6 +4,7 @@
 -----------------
 
 hl.on("hyprland.start", function ()
+  hl.exec_cmd("systemctl --user start hyprland-session.target")
   hl.exec_cmd("nm-applet")
   hl.exec_cmd("blueman-applet")
   hl.exec_cmd("kanshi")

@@ -202,13 +202,17 @@ sudo dnf5 install -y \
      kitty foot waybar mako nautilus
 #+end_src
 
+Enable services.
+#+begin_src sh
+systemctl --user enable kanshi.service
+#+end_src
+
 ** TODO Additional Hyprland packages to look into
 - hypridle
 - hyprland-plugins
 - hyprland-contrib
 
 * TODO Network manager
-
 * TODO Dev stuff
 #+begin_src sh
 sudo dnf5 install -y
