@@ -124,13 +124,13 @@ sudo hostnamectl set-hostname your_hostname
 * TODO Chroot
 * Add RPM Fusion
 #+begin_src sh
-sudo dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+sudo dnf5 install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
 #+end_src
 
 * Install basic software
 #+begin_src sh
 sudo dnf5 install -y \
-     dnf-plugins-core coreutils stow git git-delta zip unzip which tar \
+     dnf5-plugins coreutils stow which git git-delta wget curl zip unzip tar \
      gcc make cmake autoconf automake fzf ripgrep fd-find bat \
      neovim python3-neovim
 #+end_src
@@ -141,7 +141,8 @@ sudo dnf5 install -y \
      @hardware-support pciutils usbutils \
      NetworkManager-wifi network-manager-applet \
      bluez blueman pipewire wireplumber pipewire-alsa pipewire-pulseaudio \
-     alsa-utils pavucontrol
+     alsa-utils pavucontrol \
+     texlive-scheme-full
 #+end_src
 
 * TODO Fonts
@@ -151,10 +152,33 @@ sudo dnf5 install -y \
      google-noto-sans-fonts google-noto-color-emoji-fonts
 #+end_src
 
+The following need to be downloaded and installed directly:
+- JuliaMono
+- JetBrains Mono Nerd Font
+- Symbols Only Nerd Font
+
+#+begin_src sh
+mkdir -p ~/.local/share/fonts
+
+wget https://github.com/cormullion/juliamono/releases/latest/download/JuliaMono.zip
+unzip JuliaMono.zip -d ~/.local/share/fonts/JuliaMono
+rm JuliaMono.zip
+
+wget https://github.com/ryanoasis/nerd-fonts/releases/latest/download/JetBrainsMono.zip
+unzip JetBrainsMono.zip -d ~/.local/share/fonts/JetBrainsMono
+rm JetBrainsMono.zip
+
+wget https://github.com/ryanoasis/nerd-fonts/releases/latest/download/NerdFontsSymbolsOnly.zip
+unzip NerdFontsSymbolsOnly.zip -d ~/.local/share/fonts/SymbolsOnlyNerdFont
+rm NerdFontsSymbolsOnly.zip
+
+fc-cache -fv
+#+end_src
+
 * Browsers
 #+begin_src sh
-sudo dnf config-manager addrepo --from-repofile=https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
-sudo dnf install brave-browser
+sudo dnf5 config-manager addrepo --from-repofile=https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
+sudo dnf5 install -y brave-browser
 #+end_src
 Use this to install Google Chrome if you want lol.
 
@@ -176,21 +200,18 @@ sudo dnf5 install -y \
      hyprland hyprland-guiutils hyprshutdown hyprpaper hyprpolkitagent rofi \
      xdg-desktop-portal-hyprland xdg-desktop-portal \
      kitty foot waybar mako nautilus
-
-# TODO: check more of the packages in https://copr.fedorainfracloud.org/coprs/lionheartp/Hyprland/packages/
-# Figure out what needs to be installed
-# hypridle
-# hyprgraphics
-# hyprland-plugins
-# hyprland-contrib
 #+end_src
+
+** TODO Additional Hyprland packages to look into
+- hypridle
+- hyprland-plugins
+- hyprland-contrib
 
 * TODO Network manager
 
 * TODO Dev stuff
 #+begin_src sh
-sudo dnf5 install -y texlive-scheme-full \
-     libtool libvterm
+sudo dnf5 install -y
 #+end_src
 
 * Emacs
@@ -198,13 +219,13 @@ I am using Emacs 31 for now (to avoid tree-sitter conflicts with Neovim 0.12).
 #+begin_src sh
 sudo dnf copr enable alternateved/bleeding-emacs
 # By default, the above copr repo installs emacs with PGTK support.
-sudo dnf install emacs
+# Libtool and libvterm are dependencies for emacs-libvterm
+sudo dnf install emacs libtool libvterm
 #+end_src
 
 * Additional GUI apps from Fedora/RPMFusion/COPR Repos
 #+begin_src sh
-sudo dnf5 install -y \
-     vim-X11 zathura zathura-pdf-mupdf zathura-djvu zathura-ps
+sudo dnf5 install -y vim-X11 zathura zathura-pdf-mupdf zathura-djvu zathura-ps
 #+end_src
 
 * TODO Zoom, Dropbox
