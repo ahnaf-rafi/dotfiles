@@ -173,7 +173,7 @@ sudo dnf5 install -y tlp tlp-pd tlp-rdw
 dnf copr enable lionheartp/Hyprland
 
 sudo dnf5 install -y \
-     hyprland hyprland-guiutils hyprcursor hyprpolkitagent hyprlauncher rofi \
+     hyprland hyprland-guiutils hyprcursor hyprpaper hyprpolkitagent rofi \
      xdg-desktop-portal-hyprland xdg-desktop-portal \
      kitty foot waybar mako pcmanfm
 
