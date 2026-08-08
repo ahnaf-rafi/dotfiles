@@ -11,5 +11,4 @@ configuration {
   }
 }
 
-# @theme "gruvbox-dark-soft"
-@theme "modus-vivendi-tinted"
+@theme "gruvbox-dark-soft"
