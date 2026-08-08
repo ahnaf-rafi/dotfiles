@@ -218,13 +218,17 @@ systemctl --user enable kanshi.service
 sudo dnf5 install -y
 #+end_src
 
-* Emacs
+* TODO Emacs
 I am using Emacs 31 for now (to avoid tree-sitter conflicts with Neovim 0.12).
 #+begin_src sh
 sudo dnf copr enable alternateved/bleeding-emacs
 # By default, the above copr repo installs emacs with PGTK support.
 # Libtool and libvterm are dependencies for emacs-libvterm
 sudo dnf install emacs libtool libvterm
+#+end_src
+
+#+begin_src sh
+systemctl --user enable --now emacs
 #+end_src
 
 * Additional GUI apps from Fedora/RPMFusion/COPR Repos
