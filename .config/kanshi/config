@@ -1,0 +1,46 @@
+output "Lenovo Group Limited B160UAN06.N  Unknown" {
+  mode 1920x1200@60.0960
+  scale 1.00
+  alias $LEONARD
+}
+
+output "Dell Inc. DELL U2913WM 5YD8C42S539L" {
+  mode 2560x1080@60.0000
+  scale 1.00
+  alias $WORK
+}
+
+output "Dell Inc. DELL S2725QS 8YVPT84" {
+  mode 3840x2160@30.0000
+  alias $WORK_L
+}
+
+output "Dell Inc. DELL S2725QS CDHST84" {
+  mode 3840x2160@60.0000
+  alias $WORK_R
+}
+
+
+output "Dell Inc. DELL S2725DS 3BD1X14" {
+  mode 2560x1440@59.9510
+  scale 1.00
+  alias $NIGEL_L
+}
+
+output "Dell Inc. DELL S2725DSM 72GYFD4" {
+  mode 2560x1440@59.9510
+  scale 1.00
+  alias $NIGEL_R
+}
+
+profile home {
+  output $NIGEL_L enable position 0,0
+  output $NIGEL_R enable position 2560,0
+  exec ~/bin/setup_workspaces_hyprland.sh "Dell Inc. DELL S2725DS 3BD1X14" "Dell Inc. DELL S2725DSM 72GYFD4"
+}
+
+profile work {
+  output $WORK_L enable scale 1.5 position 0,0
+  output $WORK_R enable scale 1.5 position 2560,0
+  exec ~/bin/setup_workspaces_hyprland.sh "Dell Inc. DELL S2725QS 8YVPT84" "Dell Inc. DELL S2725QS CDHST84"
+}

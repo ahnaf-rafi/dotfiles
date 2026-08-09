@@ -1,0 +1,33 @@
+#!/bin/sh
+
+currdir=$(pwd)
+osname=$(uname)
+
+case "$osname" in
+  Darwin*)
+    printf "%s" "$currdir" | pbcopy
+    printf "Path copied (macOS: pbcopy).\n"
+    ;;
+  Linux*)
+    # Check for Wayland.
+    if [ "$XDG_SESSION_TYPE" = "wayland" ] && command -v wl-copy >/dev/null 2>&1; then
+      printf "%s" "$currdir" | wl-copy
+      printf "Path copied (Wayland: wl-copy).\n"
+
+      # Fallback to X11 tools
+      elif command -v xclip >/dev/null 2>&1; then
+        printf "%s" "$currdir" | xclip -selection clipboard
+        printf "Path copied (X11: xclip).\n"
+      elif command -v xsel >/dev/null 2>&1; then
+        printf "%s" "$currdir" | xsel --clipboard --input
+        printf "Path copied (X11: xsel).\n"
+      else
+        printf "Error: No clipboard utility found (wl-copy, xclip, or xsel).\n" >&2
+        exit 1
+    fi
+    ;;
+  *)
+    printf "Unsupported OS: %s\n" "$osname" >&2
+    exit 1
+    ;;
+esac
