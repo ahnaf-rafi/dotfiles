@@ -2,6 +2,9 @@
 
 ;;; Code:
 
+;; Suppress warnings about absence of lexical-binding cookies.
+(add-to-list 'warning-suppress-types '(files lexical-binding))
+
 ;; Disable unnecessary UI elements.
 (when (featurep 'menu-bar)
   (push '(menu-bar-lines . 0) default-frame-alist)

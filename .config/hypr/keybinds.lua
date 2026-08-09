@@ -70,6 +70,7 @@ end
 --- BOOKMARK
 --- TODO:
 --- Toggle tabbed
+--- Workspace change using pgup pgdown.
 --- Monitors
 --- hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
 

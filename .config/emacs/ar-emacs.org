@@ -38,8 +38,11 @@ I use ~early-init.el~ mainly to disable some GUI elements and to defer things
 like garbage collection.
 
 ** Early UI, frame and visual tweaks
-I want a minimal display setup when I start up Emacs.
-To begin, I get rid of UI elements I deem unnecessary: the menu bar, the tool
+I want a minimal display setup without extraneous warnings when I start up
+Emacs.
+To begin, I disable warnings about system and startup files missing
+~lexical-binding~ cookies.
+Then, I get rid of UI elements I deem unnecessary: the menu bar, the tool
 bar and the scroll bar.
 These UI settings should also be set in frame creation parameters to ensure that
 they persist when we spawn new frames.
@@ -50,9 +53,9 @@ Making ~frame-resize-pixelwise~ and ~frame-inhibit-implied-resize~ non-nil
 avoids this behavior.
 I also don't use X resources and to set frame features and hence, I set
 ~inhibit-x-resources~ to non-nil as well.
-In addition, I set frame parameters ~initial-frame-alist~ and
-~default-frame-alist~ here as well, using some code I saw in
-[[https://protesilaos.com/emacs/dotemacs][Protesilaos Stavrou's]].
+In addition, I set the frame parameter ~default-frame-alist~ here as well, using
+some code I saw in
+[[https://protesilaos.com/emacs/dotemacs][Protesilaos Stavrou's configuration]].
 The ~initial-frame-alist~ is about the first frame that is produced when
 starting Emacs.
 The ~default-frame-alist~ is for all subsequent frames.
@@ -60,6 +63,9 @@ The ~default-frame-alist~ is for all subsequent frames.
 ;;; early-init.el --- -*- no-byte-compile: t; lexical-binding: t; -*-
 
 ;;; Code:
+
+;; Suppress warnings about absence of lexical-binding cookies.
+(add-to-list 'warning-suppress-types '(files lexical-binding))
 
 ;; Disable unnecessary UI elements.
 (when (featurep 'menu-bar)
