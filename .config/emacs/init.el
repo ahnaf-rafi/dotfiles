@@ -13,6 +13,13 @@
 (setq locale-coding-system 'utf-8)
 (setq selection-coding-system 'utf-8)
 
+;; Suppress warnings about absence of lexical-binding cookies.
+;; (add-to-list 'warning-suppress-types '(files lexical-binding))
+(setq warning-suppress-types '((files lexical-binding)))
+
+;; Completely disable byte/native compilation warning buffers
+(setq native-comp-async-report-warnings-errors 'silent)
+
 ;; Disable the alarm bell
 (setq ring-bell-function 'ignore)
 

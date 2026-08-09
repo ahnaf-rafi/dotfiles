@@ -1,5 +1,6 @@
 [Desktop Entry]
-Name=Emacs (Client)
+Name=Emacs Client
+GenericName=Text Editor
 Exec=emacsclient --alternate-editor="" --create-frame %F
 Icon=emacs
 Type=Application

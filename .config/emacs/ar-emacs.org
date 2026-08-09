@@ -40,9 +40,7 @@ like garbage collection.
 ** Early UI, frame and visual tweaks
 I want a minimal display setup without extraneous warnings when I start up
 Emacs.
-To begin, I disable warnings about system and startup files missing
-~lexical-binding~ cookies.
-Then, I get rid of UI elements I deem unnecessary: the menu bar, the tool
+To begin, I get rid of UI elements I deem unnecessary: the menu bar, the tool
 bar and the scroll bar.
 These UI settings should also be set in frame creation parameters to ensure that
 they persist when we spawn new frames.
@@ -63,9 +61,6 @@ The ~default-frame-alist~ is for all subsequent frames.
 ;;; early-init.el --- -*- no-byte-compile: t; lexical-binding: t; -*-
 
 ;;; Code:
-
-;; Suppress warnings about absence of lexical-binding cookies.
-(add-to-list 'warning-suppress-types '(files lexical-binding))
 
 ;; Disable unnecessary UI elements.
 (when (featurep 'menu-bar)
@@ -287,7 +282,7 @@ init message."
 ;;; early-init.el ends here
 #+end_src
 
-* The ~init.el~ file
+* TODO The ~init.el~ file
 ** Personal details
 The variables ~user-full-name~ and ~user-mail-address~ are useful for a number
 of things, e.g. automatically inserting the user's real-world name and email
@@ -314,7 +309,16 @@ of characters and symbols used in modern global communication and computing.
 (setq selection-coding-system 'utf-8)
 #+end_src
 
-** Some quality of life adjustments to Emacs defaults
+** TODO Some quality of life adjustments to Emacs defaults
+#+begin_src emacs-lisp
+;; Suppress warnings about absence of lexical-binding cookies.
+;; (add-to-list 'warning-suppress-types '(files lexical-binding))
+(setq warning-suppress-types '((files lexical-binding)))
+
+;; Completely disable byte/native compilation warning buffers
+(setq native-comp-async-report-warnings-errors 'silent)
+#+end_src
+
 The ~ring-bell-function~ is a variable that determines how Emacs signals alerts
 for events like hitting the edge of a buffer.
 Here, I am opting for an interruption-free experience using a "no operation"
