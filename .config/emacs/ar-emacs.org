@@ -309,16 +309,7 @@ of characters and symbols used in modern global communication and computing.
 (setq selection-coding-system 'utf-8)
 #+end_src
 
-** TODO Some quality of life adjustments to Emacs defaults
-#+begin_src emacs-lisp
-;; Suppress warnings about absence of lexical-binding cookies.
-;; (add-to-list 'warning-suppress-types '(files lexical-binding))
-(setq warning-suppress-types '((files lexical-binding)))
-
-;; Completely disable byte/native compilation warning buffers
-(setq native-comp-async-report-warnings-errors 'silent)
-#+end_src
-
+** Some quality of life adjustments to Emacs defaults
 The ~ring-bell-function~ is a variable that determines how Emacs signals alerts
 for events like hitting the edge of a buffer.
 Here, I am opting for an interruption-free experience using a "no operation"
