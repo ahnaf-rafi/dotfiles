@@ -27,7 +27,8 @@ hl.bind(mainMod .. " + SHIFT + Q", hl.dsp.window.close())
 hl.bind(
     mainMod .. " + SHIFT + E",
     hl.dsp.exec_cmd(
-        "command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"
+        "command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown" ..
+            " || hyprctl dispatch 'hl.dsp.exit()'"
     )
 )
 
@@ -43,22 +44,43 @@ hl.bind("ALT + Tab", hl.dsp.exec_cmd(window_menu))
 hl.bind(mainMod .. " + E", hl.dsp.layout("togglesplit"))  -- dwindle only
 hl.bind(mainMod .. " + SHIFT + D", hl.dsp.window.float({ action = "toggle" }))
 
--- Move focus with mainMod + vim-binds and arrow keys
-hl.bind(mainMod .. " + H",  hl.dsp.focus({ direction = "left" }))
-hl.bind(mainMod .. " + J",  hl.dsp.focus({ direction = "down" }))
-hl.bind(mainMod .. " + K",    hl.dsp.focus({ direction = "up" }))
-hl.bind(mainMod .. " + L", hl.dsp.focus({ direction = "right" }))
+local movements = {
+    { dir = "left",   vim = "H" },
+    { dir = "down",   vim = "J" },
+    { dir = "up",     vim = "K" },
+    { dir = "right",  vim = "L" }
+}
 
-hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }))
-hl.bind(mainMod .. " + down",  hl.dsp.focus({ direction = "down" }))
-hl.bind(mainMod .. " + up",    hl.dsp.focus({ direction = "up" }))
-hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
+for _, map in ipairs(movements) do
+    -- Move focus (mainMod + Vim key / Arrow key)
+    hl.bind(mainMod .. " + " .. map.vim, hl.dsp.focus({ direction = map.dir }))
+    hl.bind(mainMod .. " + " .. map.dir, hl.dsp.focus({ direction = map.dir }))
+
+    -- Move windows (mainMod + SHIFT + Vim key / Arrow key)
+    hl.bind(
+        mainMod .. " + SHIFT + " .. map.vim,
+        hl.dsp.window.move({ direction = map.dir })
+    )
+    hl.bind(
+        mainMod .. " + SHIFT + " .. map.dir,
+        hl.dsp.window.move({ direction = map.dir })
+    )
+end
 
 --- BOOKMARK
 --- TODO:
---- Move windows
 --- Toggle tabbed
--- hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
+--- Monitors
+--- hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
+
+--- Special scratchpad workspace (scratchpad)
+--- hl.bind(
+---     mainMod .. " + S",         hl.dsp.workspace.toggle_special("magic")
+--- )
+--- hl.bind(
+---     mainMod .. " + SHIFT + S",
+---     hl.dsp.window.move({ workspace = "special:magic" })
+--- )
 
 -- Switch workspaces with mainMod + [0-9]
 -- Move active window to a workspace with mainMod + SHIFT + [0-9]
@@ -69,15 +91,6 @@ for i = 1, 10 do
         mainMod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i })
     )
 end
-
---- Special scratchpad workspace (scratchpad)
---- hl.bind(
----     mainMod .. " + S",         hl.dsp.workspace.toggle_special("magic")
---- )
---- hl.bind(
----     mainMod .. " + SHIFT + S",
----     hl.dsp.window.move({ workspace = "special:magic" })
---- )
 
 -- Scroll through existing workspaces with mainMod + scroll
 hl.bind(mainMod .. " + mouse_down", hl.dsp.focus({ workspace = "e+1" }))
