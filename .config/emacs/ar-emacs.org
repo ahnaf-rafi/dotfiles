@@ -2798,7 +2798,6 @@ This is required in ~init.el~ using the following code block.
 :END:
 
 In this section, code blocks are tangled to ~lisp/auctex-latexmk.el~.
-
 #+begin_src emacs-lisp
 ;;; auctex-latexmk.el --- -*- lexical-binding: t; -*-
 
