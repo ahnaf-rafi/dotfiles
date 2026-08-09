@@ -1,0 +1,412 @@
+* TODO Programming languages
+** TODO TeX
+*** DOC Helper: ~ar/LaTeX-indent-level-item-continuation~
+#+begin_src emacs-lisp
+(defcustom ar/LaTeX-indent-level-item-continuation 4
+  "Indentation of continuation lines for items in itemize-like environments."
+  :group 'LaTeX-indentation
+  :type 'integer)
+#+end_src
+
+*** DOC Helper: ~ar/LaTeX-indent-item~
+#+begin_src emacs-lisp
+(defun ar/LaTeX-indent-item ()
+  "Proper indentation for LaTeX itemize/enumerate/description environments."
+  (save-match-data
+    (let* ((offset LaTeX-indent-level)
+           (contin (or (and (boundp 'ar/LaTeX-indent-level-item-continuation)
+                            ar/LaTeX-indent-level-item-continuation)
+                       (* 2 LaTeX-indent-level)))
+           (re-beg "\\\\begin{")
+           (re-end "\\\\end{")
+           (re-env "\\(itemize\\|\\enumerate\\|description\\)")
+           (indent (save-excursion
+                     (when (looking-at (concat re-beg re-env "}"))
+                       (end-of-line))
+                     (LaTeX-find-matching-begin)
+                     (current-column))))
+      (cond ((looking-at (concat re-beg re-env "}"))
+             (or (save-excursion
+                   (beginning-of-line)
+                   (ignore-errors
+                     (LaTeX-find-matching-begin)
+                     (+ (current-column)
+                        (if (looking-at (concat re-beg re-env "}"))
+                            contin
+                          offset))))
+                 indent))
+            ((looking-at (concat re-end re-env "}"))
+             indent)
+            ((looking-at "\\\\item")
+             (+ offset indent))
+            (t
+             (+ contin indent))))))
+#+end_src
+
+*** DOC Helper: compiler functions
+#+begin_src emacs-lisp
+;; Remove LaTeX's built-in flymake backend; eglot/texlab handles diagnostics.
+(defun ar/remove-LaTeX-flymake ()
+  (remove-hook 'flymake-diagnostic-functions 'LaTeX-flymake t))
+(advice-add 'TeX-latex-mode :after #'ar/remove-LaTeX-flymake)
+
+(defun ar/latex-default-compile-on-master ()
+  "Run `TeX-command-default' on `TeX-master' for current buffer."
+  (interactive)
+  (TeX-command TeX-command-default #'TeX-master-file))
+
+(defun ar/save-and-latex-default-compile-on-master ()
+  "Save current buffer and run `ar/latex-default-compile-on-master'."
+  (interactive)
+  (save-buffer)
+  (ar/latex-default-compile-on-master))
+#+end_src
+
+*** DOC Helper: Hook function
+#+begin_src emacs-lisp
+(defun ar/latex-mode-h ()
+  (setq-local fill-nobreak-predicate nil)
+  (setq-local TeX-command-default "LaTeXMk")
+  (visual-line-mode 1)
+  (auto-fill-mode 1)
+  (adaptive-wrap-prefix-mode 1)
+  (reftex-mode 1)
+  (eglot-ensure)
+  (font-latex-add-keywords '(("bm" "{")) 'bold-command)
+  (setq-local ispell-parser 'tex))
+#+end_src
+
+*** TODO ~auctex~
+#+begin_src emacs-lisp
+(use-package tex
+  :ensure auctex
+  :hook (TeX-mode . ar/latex-mode-h)
+  :init
+  (setq TeX-save-query nil)
+  (setq TeX-source-correlate-mode t)
+  (setq TeX-source-correlate-start-server t)
+  (setq TeX-electric-sub-and-superscript t)
+  (setq TeX-electric-math (cons "\\(" "\\)"))
+  (setq TeX-brace-indent-level 0)
+  (setq LaTeX-left-right-indent-level 0)
+  (setq LaTeX-electric-left-right-brace t)
+  (setq LaTeX-section-hook '(LaTeX-section-heading
+                             LaTeX-section-title
+                             LaTeX-section-toc
+                             LaTeX-section-section
+                             LaTeX-section-label))
+
+  ;; preview settings
+  (setq preview-locating-previews-message nil)
+  (setq preview-protect-point t)
+  (setq preview-leave-open-previews-visible t)
+  (setq preview-auto-cache-preamble t)
+  (setq preview-LaTeX-command-replacements '(preview-LaTeX-disable-pdfoutput))
+
+  ;; Disable script height changes; clear sectioning colour handled separately.
+  (setq font-latex-fontify-script nil)
+  (setq font-latex-fontify-sectioning 'color)
+
+  ;; Register texlab LSP server; must be deferred until eglot is available.
+  (with-eval-after-load 'eglot
+    (add-to-list 'eglot-server-programs
+                 '(latex-mode . ("texlab"))))
+  :config
+  (with-eval-after-load 'latex
+    (ar/localleader LaTeX-mode-map
+      ("a" #'ar/save-and-latex-default-compile-on-master)
+      ("v" #'TeX-view)
+      (";" #'reftex-toc)
+      ("c" #'TeX-clean)))
+
+  ;; Revert the PDF buffer after compilation finishes.
+  (add-hook 'TeX-after-compilation-finished-functions
+            #'TeX-revert-document-buffer)
+  ;; SyncTeX support and latexmk integration.
+  (require 'pdf-sync)
+  ;; TODO: implement these locally.
+  ;; (require 'auctex-latexmk)
+  ;; (auctex-latexmk-setup)
+
+  (setq TeX-view-program-selection '((output-pdf "PDF Tools")))
+  ;; Font-lock for BibLaTeX and common reference commands.
+  (setq font-latex-match-reference-keywords
+        '(("printbibliography" "[{")
+          ("addbibresource" "[{")
+          ("cite" "[{")
+          ("citep" "[{")
+          ("citet" "[{")
+          ("Cite" "[{")
+          ("parencite" "[{")
+          ("Parencite" "[{")
+          ("footcite" "[{")
+          ("footcitetext" "[{")
+          ("textcite" "[{")
+          ("Textcite" "[{")
+          ("smartcite" "[{")
+          ("Smartcite" "[{")
+          ("cite*" "[{")
+          ("parencite*" "[{")
+          ("supercite" "[{")
+          ("cites" "[{")
+          ("Cites" "[{")
+          ("parencites" "[{")
+          ("Parencites" "[{")
+          ("footcites" "[{")
+          ("footcitetexts" "[{")
+          ("smartcites" "[{")
+          ("Smartcites" "[{")
+          ("textcites" "[{")
+          ("Textcites" "[{")
+          ("supercites" "[{")
+          ("autocite" "[{")
+          ("Autocite" "[{")
+          ("autocite*" "[{")
+          ("Autocite*" "[{")
+          ("autocites" "[{")
+          ("Autocites" "[{")
+          ("citeauthor" "[{")
+          ("Citeauthor" "[{")
+          ("citetitle" "[{")
+          ("citetitle*" "[{")
+          ("citeyear" "[{")
+          ("citedate" "[{")
+          ("citeurl" "[{")
+          ("fullcite" "[{")
+          ("autoref" "[{")
+          ("href" "[{")
+          ("url" "[{")
+          ("cref" "{")
+          ("Cref" "{")
+          ("cpageref" "{")
+          ("Cpageref" "{")
+          ("cpagerefrange" "{")
+          ("Cpagerefrange" "{")
+          ("crefrange" "{")
+          ("Crefrange" "{")
+          ("labelcref" "{")))
+  (setq font-latex-match-textual-keywords
+        '(("parentext" "{")
+          ("brackettext" "{")
+          ("hybridblockquote" "[{")
+          ("textelp" "{")
+          ("textelp*" "{")
+          ("textins" "{")
+          ("textins*" "{")
+          ("subcaption" "[{")))
+  (setq font-latex-match-variable-keywords
+        '(("numberwithin" "{")
+          ("setlist" "[{")
+          ("setlist*" "[{")
+          ("newlist" "{")
+          ("renewlist" "{")
+          ("setlistdepth" "{")
+          ("restartlist" "{")
+          ("crefname" "{")))
+  ;; Reset and repopulate indentation rules for theorem-like environments.
+  (setq LaTeX-indent-environment-list nil)
+  (dolist (envpair '(("verbatim"      current-indentation)
+                     ("verbatim*"     current-indentation)
+                     ("filecontents"  current-indentation)
+                     ("filecontents*" current-indentation)
+                     ("frame"         current-indentation)
+                     ("theorem"       current-indentation)
+                     ("thm"           current-indentation)
+                     ("corollary"     current-indentation)
+                     ("cor"           current-indentation)
+                     ("lemma"         current-indentation)
+                     ("lem"           current-indentation)
+                     ("definition"    current-indentation)
+                     ("def"           current-indentation)
+                     ("assumption"    current-indentation)
+                     ("asm"           current-indentation)
+                     ("remark"        current-indentation)
+                     ("rem"           current-indentation)
+                     ("example"       current-indentation)
+                     ("eg"            current-indentation)
+                     ("proof"         current-indentation)
+                     ("problem"       current-indentation)
+                     ("itemize"       ar/LaTeX-indent-item)
+                     ("enumerate"     ar/LaTeX-indent-item)
+                     ("description"   ar/LaTeX-indent-item)))
+    (add-to-list 'LaTeX-indent-environment-list envpair)))
+#+end_src
+
+*** DOC ~procress~
+#+begin_src emacs-lisp
+(use-package procress
+  :hook (LaTeX-mode . procress-auctex-mode)
+  :config
+  (procress-load-default-svg-images))
+#+end_src
+
+*** TODO ~evil-tex-ts~
+#+begin_src emacs-lisp
+(use-package evil-tex-ts
+  :ensure t
+  :after (evil)
+  :hook ((LaTeX-mode . evil-tex-ts-mode)
+         (latex-mode . evil-tex-ts-mode))
+  :init
+  (setq evil-tex-ts-toggle-override-m nil)
+  (setq evil-tex-ts-toggle-override-t t)
+
+  ;; NOTE: THIS NEEDS TO HAVE THE COMPILED LIB tree-sitter-latex.so!!!
+  (add-to-list 'treesit-extra-load-path
+               (expand-file-name "~/.config/emacs/treesitter/"))
+  (add-to-list 'treesit-extra-load-path
+               (expand-file-name "~/external-repos/tree-sitter-latex/"))
+  :config
+  ;; IMPORTANT: Set preferred inline math format
+  ;; 'dollar for $...$ (default), 'paren for \(...\)
+  (setq evil-tex-ts-preferred-inline-math 'paren))
+#+end_src
+
+*** TODO ~preview-auto.el~
+#+begin_src emacs-lisp
+(use-package preview-auto
+  :hook (LaTeX-mode . preview-auto-setup))
+#+end_src
+
+*** TODO ~auctex-latexmk~
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/auctex-latexmk.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/auctex-latexmk.el~.
+#+begin_src emacs-lisp
+;;; auctex-latexmk.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+
+(require 'latex)
+
+;; Only needed for backward compatibility.  Use quote to
+;; hide this from tools used to maintain the Emacsmirror.
+(require (quote tex-buf) nil t)
+
+(defgroup auctex-latexmk nil
+  "Add LatexMk support to AUCTeX."
+  :group 'AUCTeX
+  :prefix "auctex-latexmk")
+
+(defcustom auctex-latexmk-encoding-alist
+  '((japanese-iso-8bit      . "euc")
+    (japanese-iso-8bit-unix . "euc")
+    (euc-jp                 . "euc")
+    (euc-jp-unix            . "euc")
+    (utf-8                  . "utf8")
+    (utf-8-unix             . "utf8")
+    (japanese-shift-jis     . "sjis")
+    (japanese-shift-jis-dos . "sjis"))
+  "Encoding mapping for platex."
+  :group 'auctex-latexmk)
+
+(defcustom auctex-latexmk-inherit-TeX-PDF-mode nil
+  "If non-nil add -pdf flag to latexmk when `TeX-PDF-mode' is active."
+  :group 'auctex-latexmk)
+
+(defun TeX-run-latexmk (name command file)
+  (let ((TeX-sentinel-default-function 'Latexmk-sentinel)
+        (pair (assq buffer-file-coding-system auctex-latexmk-encoding-alist)))
+    (unless (null pair)
+      (setenv "LATEXENC" (cdr pair)))
+    (TeX-run-TeX name command file)
+    (setenv "LATEXENC" nil)))
+
+;;;###autoload
+(defun auctex-latexmk-setup ()
+  "Add LatexMk command to TeX-command-list."
+  (add-to-list 'TeX-expand-list
+               '("%(-PDF)"
+                 (lambda ()
+                   (cond
+                    ((and (eq TeX-engine 'default)
+                          TeX-PDF-mode
+                          auctex-latexmk-inherit-TeX-PDF-mode)
+                     "-pdf ")
+                    ((and (eq TeX-engine 'xetex)
+                          TeX-PDF-mode
+                          auctex-latexmk-inherit-TeX-PDF-mode)
+                     "-pdf -pdflatex=xelatex ")
+                    ((eq TeX-engine 'xetex) "-xelatex ")
+                    ((eq TeX-engine 'luatex) "-lualatex ")
+                    (t "")))))
+  (setq-default TeX-command-list
+                (cons
+                 '("LaTeXMk" "latexmk %(-PDF)%S%(mode) %(file-line-error) %(extraopts) %t" TeX-run-latexmk nil
+                   (plain-tex-mode latex-mode doctex-mode) :help "Run LatexMk")
+                 TeX-command-list)
+                LaTeX-clean-intermediate-suffixes
+                (append LaTeX-clean-intermediate-suffixes
+                        '("\\.fdb_latexmk" "\\.aux.bak" "\\.fls"))))
+
+(defun Latexmk-sentinel (process name)
+  (save-excursion
+    (goto-char (point-max))
+    (cond
+      ((re-search-backward (format "^%s finished at" mode-name) nil t)
+       (if (re-search-backward "^Run number [0-9]+ of rule '\\(pdf\\|lua\\|xe\\)?latex'" nil t)
+           (progn
+             (forward-line 5)
+             (let ((beg (point)))
+               (when (string= (current-word) "Latexmk")
+                 ;; Special treatment for MiKTeX
+                 (forward-line))
+               (re-search-forward "^Latexmk:" nil t)
+               (beginning-of-line)
+               (save-restriction
+                 (narrow-to-region beg (point))
+                 (goto-char (point-min))
+                 (TeX-LaTeX-sentinel process name))))
+         (message (format "%s: nothing to do" name))))
+      ((re-search-backward (format "^%s exited abnormally with code" mode-name) nil t)
+       (re-search-backward "^Collected error summary (may duplicate other messages):" nil t)
+       (re-search-forward "^  \\([^:]+\\):" nil t)
+       (let ((com (TeX-match-buffer 1)))
+         (cond
+           ((string-match "^\\(pdf\\|lua\\|xe\\)?latex" com)
+            (goto-char (point-min))
+            (TeX-LaTeX-sentinel process name)
+            (when (string= TeX-command-next TeX-command-BibTeX)
+              (setq TeX-command-default nil)))
+           ((string-match "^bibtex " com)
+            (forward-line -1)
+            (re-search-backward com nil t)
+            (forward-line 5)
+            (let ((beg (point)))
+              (re-search-forward "^Rule" nil t)
+              (beginning-of-line)
+              (save-restriction
+                (narrow-to-region beg (point))
+                (TeX-BibTeX-sentinel process name))))))))))
+
+(defadvice TeX-recenter-output-buffer (around recenter-for-latexmk activate)
+  (setq ad-return-value
+        (let ((buffer (TeX-active-buffer)))
+          (if buffer
+              (if (with-current-buffer buffer
+                    (goto-char (point-max))
+                    (re-search-backward "^latexmk" nil t))
+                  (let ((old-buffer (current-buffer)))
+                    (TeX-pop-to-buffer buffer t t)
+                    (bury-buffer buffer)
+                    (goto-char (point-max))
+                    (re-search-backward "^Run number [0-9]+ of rule 'bibtex .+'"
+                                        nil t)
+                    (re-search-forward "^Rule" nil t)
+                    (forward-line -1)
+                    (recenter (if line
+                                  (prefix-numeric-value line)
+                                  (/ (window-height) 2)))
+                    (TeX-pop-to-buffer old-buffer nil t))
+                  ad-do-it)
+              (message "No process for this document.")))))
+
+(provide 'auctex-latexmk)
+;;; auctex-latexmk.el ends here
+#+end_src
+
+**** TODO Refactor into ~ar-latexmk.el~ library.
+**** TODO Look at  ~auctex-cont-latexmk.el~ for possible improvements.
+[[https://github.com/ultronozm/auctex-cont-latexmk.el][auctex-cont-latexmk.el]]

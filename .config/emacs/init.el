@@ -54,6 +54,7 @@
 (require 'ar-tools)
 (require 'ar-julia)
 (require 'ar-nix)
+(require 'ar-lua)
 (require 'ar-latex)
 (require 'ar-bibtex)
 (require 'ar-org)
