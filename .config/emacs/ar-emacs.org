@@ -2527,26 +2527,6 @@ This is required in ~init.el~ using the following code block.
 (setq tex-fontify-script nil)
 #+end_src
 
-*** DOC The ~ar-latex-funcs.el~ library
-:PROPERTIES:
-:header-args:emacs-lisp: :tangle lisp/ar-latex-funcs.el :mkdirp yes
-:END:
-
-In this section, code blocks are tangled to ~lisp/ar-latex-funcs.el~.
-This is required in ~init.el~ using the following code block.
-
-#+begin_src emacs-lisp
-;;; ar-latex-funcs.el --- -*- lexical-binding: t; -*-
-
-;;; Code:
-
-;; Built-in tex-mode fallback: disable script fontification.
-;; AUCTeX sets font-latex-fontify-script separately.
-
-(provide 'ar-latex-funcs)
-;;; ar-latex-funcs.el ends here
-#+end_src
-
 *** DOC Helper: ~ar/LaTeX-indent-level-item-continuation~
 #+begin_src emacs-lisp
 (defcustom ar/LaTeX-indent-level-item-continuation 4
@@ -2650,38 +2630,6 @@ This is required in ~init.el~ using the following code block.
   ;; Disable script height changes; clear sectioning colour handled separately.
   (setq font-latex-fontify-script nil)
   (setq font-latex-fontify-sectioning 'color)
-  ;; May not be needed?
-  ;; (with-eval-after-load 'font-latex
-  ;;   (set-face-foreground 'font-latex-script-char-face nil))
-
-  ;; (setq-default eglot-workspace-configuration
-  ;;               '(:texlab (:build (:onSave t
-  ;;                                  :executable "latexmk"
-  ;;                                  :args ["-pdf" "-interaction=nonstopmode" "-synctex=1" "%f"]
-  ;;                                  :forwardSearchAfter t))))
-  ;;                          ;; :forwardSearch (:executable "emacsclient"
-  ;;                          ;;                 ;; Use %f (tex file) instead of %p (pdf file)
-  ;;                          ;;                 :args ["--eval" "(ar/texlab-refresh-forward \"%f\" %l)"])
-
-
-
-  ;; (defun ar/texlab-refresh-forward (tex-path line)
-  ;; "Refresh the PDF corresponding to TEX-PATH and jump to LINE."
-  ;; (let* ((pdf-path (concat (file-name-sans-extension tex-path) ".pdf"))
-  ;;        (buf (find-buffer-visiting pdf-path)))
-  ;;   (if (and pdf-path (file-exists-p pdf-path))
-  ;;       (if buf
-  ;;           (with-current-buffer buf
-  ;;             (pdf-view-revert-buffer nil t)
-  ;;             (display-buffer buf '(display-buffer-reuse-window))
-  ;;             (pdf-sync-forward-search))
-  ;;         ;; Fallback: Open in side window if not already open
-  ;;         (let ((new-buf (find-file-noselect pdf-path)))
-  ;;           (display-buffer-in-side-window new-buf '((side . right) (window-width . 0.5)))
-  ;;           (with-current-buffer new-buf
-  ;;             (pdf-sync-forward-search))))
-  ;;     (message "No PDF found for %s. Build might have failed." tex-path))))
-
 
   ;; Register texlab LSP server; must be deferred until eglot is available.
   (with-eval-after-load 'eglot
@@ -2911,7 +2859,7 @@ In this section, code blocks are tangled to ~lisp/auctex-latexmk.el~.
                     (t "")))))
   (setq-default TeX-command-list
                 (cons
-                 '("LatexMk" "latexmk %(-PDF)%S%(mode) %(file-line-error) %(extraopts) %t" TeX-run-latexmk nil
+                 '("LaTeXMk" "latexmk %(-PDF)%S%(mode) %(file-line-error) %(extraopts) %t" TeX-run-latexmk nil
                    (plain-tex-mode latex-mode doctex-mode) :help "Run LatexMk")
                  TeX-command-list)
                 LaTeX-clean-intermediate-suffixes

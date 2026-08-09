@@ -98,38 +98,6 @@
   ;; Disable script height changes; clear sectioning colour handled separately.
   (setq font-latex-fontify-script nil)
   (setq font-latex-fontify-sectioning 'color)
-  ;; May not be needed?
-  ;; (with-eval-after-load 'font-latex
-  ;;   (set-face-foreground 'font-latex-script-char-face nil))
-
-  ;; (setq-default eglot-workspace-configuration
-  ;;               '(:texlab (:build (:onSave t
-  ;;                                  :executable "latexmk"
-  ;;                                  :args ["-pdf" "-interaction=nonstopmode" "-synctex=1" "%f"]
-  ;;                                  :forwardSearchAfter t))))
-  ;;                          ;; :forwardSearch (:executable "emacsclient"
-  ;;                          ;;                 ;; Use %f (tex file) instead of %p (pdf file)
-  ;;                          ;;                 :args ["--eval" "(ar/texlab-refresh-forward \"%f\" %l)"])
-
-
-
-  ;; (defun ar/texlab-refresh-forward (tex-path line)
-  ;; "Refresh the PDF corresponding to TEX-PATH and jump to LINE."
-  ;; (let* ((pdf-path (concat (file-name-sans-extension tex-path) ".pdf"))
-  ;;        (buf (find-buffer-visiting pdf-path)))
-  ;;   (if (and pdf-path (file-exists-p pdf-path))
-  ;;       (if buf
-  ;;           (with-current-buffer buf
-  ;;             (pdf-view-revert-buffer nil t)
-  ;;             (display-buffer buf '(display-buffer-reuse-window))
-  ;;             (pdf-sync-forward-search))
-  ;;         ;; Fallback: Open in side window if not already open
-  ;;         (let ((new-buf (find-file-noselect pdf-path)))
-  ;;           (display-buffer-in-side-window new-buf '((side . right) (window-width . 0.5)))
-  ;;           (with-current-buffer new-buf
-  ;;             (pdf-sync-forward-search))))
-  ;;     (message "No PDF found for %s. Build might have failed." tex-path))))
-
 
   ;; Register texlab LSP server; must be deferred until eglot is available.
   (with-eval-after-load 'eglot
