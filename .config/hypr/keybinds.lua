@@ -32,7 +32,7 @@ hl.bind(
     )
 )
 
---- Start File Manager
+--- Start file manager
 hl.bind(mainMod .. " + F", hl.dsp.exec_cmd(fileManager))
 
 --- Launcher binds
@@ -40,10 +40,18 @@ hl.bind(mainMod .. " + Space", hl.dsp.exec_cmd(desktop_menu))
 hl.bind(mainMod .. " + SHIFT + Space", hl.dsp.exec_cmd(exec_menu))
 hl.bind("ALT + Tab", hl.dsp.exec_cmd(window_menu))
 
+-- Notifications.
+hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("makoctl dismiss"))
+hl.bind(mainMod .. " + SHIFT + N", hl.dsp.exec_cmd("makoctl dismiss -a"))
+hl.bind(mainMod .. " + ALT + N", hl.dsp.exec_cmd("makoctl history | rofi -dmenu"))
+
 --- Window orientation toggles
-hl.bind(mainMod .. " + E", hl.dsp.layout("togglesplit"))  -- dwindle only
+hl.bind(mainMod .. " + W", hl.dsp.group.toggle())  -- Tabbed layout
+hl.bind(mainMod .. " + P", hl.dsp.window.pseudo()) -- Pseudo-tiling
+hl.bind(mainMod .. " + E", hl.dsp.layout("togglesplit"))
 hl.bind(mainMod .. " + SHIFT + D", hl.dsp.window.float({ action = "toggle" }))
 
+--- Focus and window movement within workspace
 local movements = {
     { dir = "left",   vim = "H" },
     { dir = "down",   vim = "J" },
@@ -67,30 +75,35 @@ for _, map in ipairs(movements) do
     )
 end
 
---- BOOKMARK
---- TODO:
---- Toggle tabbed
---- Workspace change using pgup pgdown.
---- Monitors
---- hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
-
---- Special scratchpad workspace (scratchpad)
---- hl.bind(
----     mainMod .. " + S",         hl.dsp.workspace.toggle_special("magic")
---- )
---- hl.bind(
----     mainMod .. " + SHIFT + S",
----     hl.dsp.window.move({ workspace = "special:magic" })
---- )
+--- Workspace switching
+-- Switch to previous/next existing strictly numerical workspace.
+hl.bind("SUPER + Page_Down", hl.dsp.focus({ workspace = "e-1" }))
+hl.bind("SUPER + Page_Up", hl.dsp.focus({ workspace = "e+1" }))
 
 -- Switch workspaces with mainMod + [0-9]
 -- Move active window to a workspace with mainMod + SHIFT + [0-9]
 for i = 1, 10 do
-    local key = i % 10 -- 10 maps to key 0
-    hl.bind(mainMod .. " + " .. key, hl.dsp.focus({ workspace = i}))
-    hl.bind(
-        mainMod .. " + SHIFT + " .. key, hl.dsp.window.move({ workspace = i })
-    )
+    local key = i % 10 -- 10 and 20 both map to key 0
+
+    if i <= 10 then
+        -- Workspaces 1-10
+        hl.bind(
+            mainMod .. " + " .. key, hl.dsp.focus({ workspace = i })
+        )
+        hl.bind(
+            mainMod .. " + SHIFT + " .. key,
+            hl.dsp.window.move({ workspace = i })
+        )
+    else
+        -- Workspaces 11-20
+        hl.bind(
+            mainMod .. " + CTRL + " .. key, hl.dsp.focus({ workspace = i })
+        )
+        hl.bind(
+            mainMod .. " + CTRL + SHIFT + " .. key,
+            hl.dsp.window.move({ workspace = i })
+        )
+    end
 end
 
 -- Scroll through existing workspaces with mainMod + scroll
@@ -152,3 +165,17 @@ hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = tr
 hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
 hl.bind("XF86AudioPlay",  hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
 hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = true })
+
+
+------------
+--- TODO ---
+------------
+
+--- Special scratchpad workspace (scratchpad)
+--- hl.bind(
+---     mainMod .. " + S",         hl.dsp.workspace.toggle_special("magic")
+--- )
+--- hl.bind(
+---     mainMod .. " + SHIFT + S",
+---     hl.dsp.window.move({ workspace = "special:magic" })
+--- )
