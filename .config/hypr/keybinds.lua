@@ -8,6 +8,15 @@ local desktop_menu = "rofi -show drun -show-icons"
 local exec_menu    = "rofi -show run"
 local window_menu  = "rofi -show window"
 
+------------------------------
+--- Configuration settings ---
+------------------------------
+hl.config({
+    binds = {
+        movefocus_cycles_groupfirst = true,
+    },
+})
+
 ----------------
 --- Keybinds ---
 ----------------
@@ -71,7 +80,7 @@ for _, map in ipairs(movements) do
     )
     hl.bind(
         mainMod .. " + SHIFT + " .. map.dir,
-        hl.dsp.window.move({ direction = map.dir })
+        hl.dsp.window.move({ direction = map.dir, group_aware = true })
     )
 end
 
