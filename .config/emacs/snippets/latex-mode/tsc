@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: textsuperscript
+# uuid: tsc
+# key: tsc
+# condition: t
+# --
+\textsuperscript{$1} $0

@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: problem
+# key: prob
+# group: theorems
+# condition: t
+# --
+\begin{problem}
+${1:\label{prb--$4}}
+`%`$0
+\end{problem}

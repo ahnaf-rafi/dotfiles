@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: mathfrak
+# uuid: frak
+# key: frak
+# condition: t
+# --
+\mathfrak{`%`$1}$0

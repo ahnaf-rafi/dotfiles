@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: gather-star
+# key: gatnn
+# condition: t
+# --
+\begin{gather*}
+  `%`$0
+\end{gather*}

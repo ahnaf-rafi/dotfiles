@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: split
+# key: spl
+# condition: t
+# --
+\begin{split}
+  `%`$0
+\end{split}

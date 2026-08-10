@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: gather
+# key: gat
+# condition: t
+# --
+\begin{gather}
+  `%`$0
+\end{gather}

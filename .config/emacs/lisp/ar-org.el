@@ -57,21 +57,6 @@
     ("t t" #'org-toggle-checkbox)
     ("t l" #'org-toggle-link-display)
     ("t i" #'org-toggle-inline-images))
-
-  ;; evil localleader hack
-  ;; (with-eval-after-load 'evil
-  ;;   (dolist (kfpair '(("."   consult-org-heading)
-  ;;                     ("p"   org-preview-latex-fragment)
-  ;;                     ("e"   org-export-dispatch)
-  ;;                     ("a"   org-latex-export-to-pdf)
-  ;;                     ("t t" org-toggle-checkbox)
-  ;;                     ("t l" org-toggle-link-display)
-  ;;                     ("t i" org-toggle-inline-images)
-  ;;                     ("p"   org-preview-latex-fragment)))
-  ;;     (let ((key  (nth 0 kfpair))
-  ;;           (func (nth 1 kfpair)))
-  ;;       (evil-define-key '(normal visual motion) org-mode-map
-  ;;         (kbd (concat "SPC m " key)) func))))
   )
 
 (provide 'ar-org)

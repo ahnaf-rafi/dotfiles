@@ -64,7 +64,8 @@ them as (year name title) rather than the default (name year title)."
                  '(bibtex-mode . ("texlab"))))
   :config
   (ar/localleader bibtex-mode-map
-    ("k" #'ar/insert-bibtex-autokey)))
+    ("k" #'ar/insert-bibtex-autokey))
+  )
 
 (provide 'ar-bibtex)
 ;;; ar-bibtex.el ends here
