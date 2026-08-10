@@ -266,5 +266,13 @@ systemctl --user enable --now emacs
 sudo dnf5 install -y vim-X11 zathura zathura-pdf-mupdf zathura-djvu zathura-ps
 #+end_src
 
-* TODO Zoom, Dropbox
+* TODO Zoom, Dropbox, texlab
 These need to be installed directly from the provider.
+
+#+begin_src sh
+mkdir -p ~/.local/bin
+
+wget https://github.com/latex-lsp/texlab/releases/latest/download/texlab-x86_64-linux.tar.gz
+tar -xzf texlab-x86_64-linux.tar.gz -C ~/.local/bin
+rm texlab-x86_64-linux.tar.gz
+#+end_src
