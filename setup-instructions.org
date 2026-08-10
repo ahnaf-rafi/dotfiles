@@ -245,8 +245,9 @@ I am using Emacs 31 for now (to avoid tree-sitter conflicts with Neovim 0.12).
 #+begin_src sh
 sudo dnf copr enable alternateved/bleeding-emacs
 # By default, the above copr repo installs emacs with PGTK support.
-# Libtool and libvterm are dependencies for emacs-libvterm
-sudo dnf install emacs libtool libvterm
+# Libtool and libvterm are dependencies for emacs-libvterm.
+# I need tree-sitter-cli to deal with tree-sitter-latex.
+sudo dnf install emacs libtool libvterm tree-sitter-cli
 #+end_src
 Start in frameless in terminal to install packages:
 #+begin_src sh
