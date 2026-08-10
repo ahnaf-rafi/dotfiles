@@ -139,7 +139,7 @@ sudo dnf5 install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-relea
 sudo dnf5 install -y \
      dnf5-plugins coreutils stow which git git-delta wget curl \
      zip unzip tar tree gcc make cmake autoconf automake fzf ripgrep fd-find \
-     bat neovim python3-neovim
+     bat fastfetch neovim python3-neovim tmux
 #+end_src
 
 * Non-server machines
@@ -155,9 +155,9 @@ sudo dnf5 install -y \
 
 * Pipewire
 #+begin_src sh
-systemctl --user enable --now pipewire
-systemctl --user enable --now pipewire-pulse
-systemctl --user enable --now wireplumber
+sudo systemctl enable --now pipewire
+sudo systemctl enable --now pipewire-pulse
+sudo systemctl enable --now wireplumber
 #+end_src
 
 * TODO Fonts
@@ -199,7 +199,7 @@ Use this to install Google Chrome if you want lol.
 
 * Nvidia
 #+begin_src sh
-sudo dnf5 install -y akmod-nvidia
+sudo dnf5 install -y akmod-nvidia xorg-x11-drv-nvidia-cuda libva-nvidia-driver
 #+end_src
 
 * DOC Laptop power
