@@ -33,6 +33,10 @@ output "Dell Inc. DELL S2725DSM 72GYFD4" {
   alias $NIGEL_R
 }
 
+profile laptop {
+  output $LEONARD enable position 0,0
+}
+
 profile home {
   output $NIGEL_L enable position 0,0
   output $NIGEL_R enable position 2560,0
