@@ -1,4 +1,7 @@
 #+title: Ahnaf's installation instructions for Fedora Everything Minimal
+#+author: Ahnaf Rafi
+#+startup: overview
+#+todo: TODO(t) DOC(o) | DONE(d)
 
 Here, I record installation steps based on a minimal installation of Fedora
 Linux using the Fedora Everything ISO from
@@ -45,7 +48,11 @@ Check that the firewall daemon is running:
 #+begin_src sh
 sudo systemctl status firewalld
 #+end_src
-Ensure that the SSH service is allowed by the firewall daemon:
+Check if the daemon allows the SSH service:
+#+begin_src sh
+sudo firewall-cmd --query-service=ssh
+#+end_src
+If not, ensure that the SSH service is allowed by the firewall daemon:
 #+begin_src sh
 sudo firewall-cmd --permanent --add-service=ssh
 sudo firewall-cmd --reload
@@ -130,19 +137,27 @@ sudo dnf5 install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-relea
 * Install basic software
 #+begin_src sh
 sudo dnf5 install -y \
-     dnf5-plugins coreutils stow which git git-delta wget curl zip unzip tar \
-     gcc make cmake autoconf automake fzf ripgrep fd-find bat \
-     neovim python3-neovim
+     dnf5-plugins coreutils stow which git git-delta wget curl \
+     zip unzip tar tree gcc make cmake autoconf automake fzf ripgrep fd-find \
+     bat neovim python3-neovim
 #+end_src
 
 * Non-server machines
 #+begin_src sh
 sudo dnf5 install -y \
-     @hardware-support pciutils usbutils \
-     NetworkManager-wifi network-manager-applet \
-     bluez blueman pipewire wireplumber pipewire-alsa pipewire-pulseaudio \
+     @hardware-support pciutils usbutils smartmontools \
+     NetworkManager-wifi wpa_supplicant network-manager-applet \
+     NetworkManager-bluetooth bluez blueman \
+     pipewire wireplumber pipewire-alsa pipewire-pulseaudio \
      alsa-utils pavucontrol \
      texlive-scheme-full
+#+end_src
+
+* Pipewire
+#+begin_src sh
+systemctl --user enable --now pipewire
+systemctl --user enable --now pipewire-pulse
+systemctl --user enable --now wireplumber
 #+end_src
 
 * TODO Fonts
@@ -187,19 +202,32 @@ Use this to install Google Chrome if you want lol.
 sudo dnf5 install -y akmod-nvidia
 #+end_src
 
-* TODO Laptop power
-#+begin_src
+* DOC Laptop power
+#+begin_src sh
 sudo dnf5 install -y tlp tlp-pd tlp-rdw
+#+end_src
+Edit/uncomment the variables:
+#+begin_src sh
+START_CHARGE_THRESH_BAT0 # I usually set it to 75
+STOP_CHARGE_THRESH_BAT0  # I usually set it to 80
+START_CHARGE_THRESH_BAT1 # I usually set it to 75
+STOP_CHARGE_THRESH_BAT1  # I usually set it to 80
+#+end_src
+
+Enable:
+#+begin_src
+sudo systemctl enable --now tlp.service
+sudo systemctl enable --now tlp-pd.service
 #+end_src
 
 * TODO Hyprland
 #+begin_src sh
-dnf copr enable lionheartp/Hyprland
+sudo dnf copr enable lionheartp/Hyprland
 
 sudo dnf5 install -y \
      hyprland hyprland-guiutils hyprshutdown hyprpaper hyprpolkitagent rofi \
      xdg-desktop-portal-hyprland xdg-desktop-portal \
-     kitty foot waybar mako nautilus
+     kitty foot waybar mako kanshi nautilus fontawesome-fonts-all
 #+end_src
 
 Enable services.
@@ -212,12 +240,6 @@ systemctl --user enable kanshi.service
 - hyprland-plugins
 - hyprland-contrib
 
-* TODO Network manager
-* TODO Dev stuff
-#+begin_src sh
-sudo dnf5 install -y
-#+end_src
-
 * TODO Emacs
 I am using Emacs 31 for now (to avoid tree-sitter conflicts with Neovim 0.12).
 #+begin_src sh
@@ -225,6 +247,10 @@ sudo dnf copr enable alternateved/bleeding-emacs
 # By default, the above copr repo installs emacs with PGTK support.
 # Libtool and libvterm are dependencies for emacs-libvterm
 sudo dnf install emacs libtool libvterm
+#+end_src
+Start in frameless in terminal to install packages:
+#+begin_src sh
+emacs -nw
 #+end_src
 
 #+begin_src sh
