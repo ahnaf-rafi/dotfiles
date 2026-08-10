@@ -76,13 +76,19 @@ for _, map in ipairs(movements) do
     -- Move windows (mainMod + SHIFT + Vim key / Arrow key)
     hl.bind(
         mainMod .. " + SHIFT + " .. map.vim,
-        hl.dsp.window.move({ direction = map.dir })
+        hl.dsp.window.move({ direction = map.dir, group_aware = true })
     )
     hl.bind(
         mainMod .. " + SHIFT + " .. map.dir,
         hl.dsp.window.move({ direction = map.dir, group_aware = true })
     )
 end
+
+-- Monitor switching
+hl.bind("SUPER + M", hl.dsp.focus({ monitor = "+1" }))
+
+-- Move active window to monitor on the left, then focus that monitor
+hl.bind("SUPER + SHIFT + M", hl.dsp.window.move({ monitor = "+1", follow = false }))
 
 --- Workspace switching
 -- Switch to previous/next existing strictly numerical workspace.
@@ -91,7 +97,7 @@ hl.bind("SUPER + Page_Down", hl.dsp.focus({ workspace = "e+1" }))
 
 -- Switch workspaces with mainMod + [0-9]
 -- Move active window to a workspace with mainMod + SHIFT + [0-9]
-for i = 1, 10 do
+for i = 1, 20 do
     local key = i % 10 -- 10 and 20 both map to key 0
 
     if i <= 10 then
@@ -101,7 +107,7 @@ for i = 1, 10 do
         )
         hl.bind(
             mainMod .. " + SHIFT + " .. key,
-            hl.dsp.window.move({ workspace = i })
+            hl.dsp.window.move({ workspace = i, follow = false })
         )
     else
         -- Workspaces 11-20
@@ -110,7 +116,7 @@ for i = 1, 10 do
         )
         hl.bind(
             mainMod .. " + CTRL + SHIFT + " .. key,
-            hl.dsp.window.move({ workspace = i })
+            hl.dsp.window.move({ workspace = i, follow = false })
         )
     end
 end
