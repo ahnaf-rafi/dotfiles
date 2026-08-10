@@ -86,8 +86,8 @@ end
 
 --- Workspace switching
 -- Switch to previous/next existing strictly numerical workspace.
-hl.bind("SUPER + Page_Down", hl.dsp.focus({ workspace = "e-1" }))
-hl.bind("SUPER + Page_Up", hl.dsp.focus({ workspace = "e+1" }))
+hl.bind("SUPER + Page_Up", hl.dsp.focus({ workspace = "e-1" }))
+hl.bind("SUPER + Page_Down", hl.dsp.focus({ workspace = "e+1" }))
 
 -- Switch workspaces with mainMod + [0-9]
 -- Move active window to a workspace with mainMod + SHIFT + [0-9]
