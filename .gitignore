@@ -1,5 +1,9 @@
 # Temporary files and directories.
 *tmp*
 
+# Archives
+*.zip*
+*.tar.gz*
+
 # Neovim spell list binaries.
 *.add.spl
