@@ -1,7 +1,7 @@
 [Unit]
 Description=Dynamic output configuration for Wayland compositors
 Documentation=man:kanshi(1)
-BindsTo=hyprland-session.target
+BindsTo=sway-session.target
 
 [Service]
 Type=simple
@@ -9,4 +9,4 @@ ExecStart=/usr/bin/kanshi
 Restart=on-failure
 
 [Install]
-WantedBy=hyprland-session.target
+WantedBy=sway-session.target
