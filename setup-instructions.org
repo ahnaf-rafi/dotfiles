@@ -230,11 +230,19 @@ sudo dnf5 install -y \
      kitty foot waybar mako kanshi nautilus fontawesome-fonts-all
 #+end_src
 
+
+#+begin_src sh
+sudo dnf5 remove hyprland hyprland-guiutils hyprshutdown hyprpaper \
+     hyprpolkitagent xdg-desktop-portal-hyprland
+
+sudo dnf copr remove lionheartp/Hyprland
+#+end_src
+
 * TODO Sway
 #+begin_src sh
 sudo dnf5 install -y sway swaylock swayidle swaybg \
      xdg-desktop-portal-wlr xdg-desktop-portal-gtk grim slurp \
-     rofi kitty foot waybar mako  kanshi nautilus fontawesome-fonts-all
+     rofi kitty foot waybar mako kanshi nautilus fontawesome-fonts-all
 #+end_src
 
 Enable services.

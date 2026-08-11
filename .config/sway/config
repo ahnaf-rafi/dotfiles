@@ -39,15 +39,17 @@ font pango:JetBrainsMono Nerd Font 12px
 ##############
 # Autostarts #
 ##############
-exec_always systemctl --user start hyprland-session.target
+# exec_always systemctl --user start sway-session.target
 # System tray indicator for NetworkManager.
 exec --no-startup-id nm-applet --indicator
 # System tray indicator for Blueman (bluetooth manager).
 exec --no-startup-id blueman-applet
+# Configure monitors using kanshi.
+exec_always --no-startup-id kanshi
 # Mako for desktop notifications.
 exec --no-startup-id mako
 # Dropbox.
-exec --no-startup-id dropbox
+# exec --no-startup-id dropbox start
 
 #############
 # Wallpaper #

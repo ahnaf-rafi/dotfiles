@@ -51,14 +51,9 @@ stow .
 sudo dnf5 config-manager addrepo --from-repofile=https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo
 sudo dnf5 install -y brave-browser
 
-sudo dnf copr enable lionheartp/Hyprland
-
-sudo dnf5 install -y \
-     hyprland hyprland-guiutils hyprshutdown hyprpaper hyprpolkitagent rofi \
-     xdg-desktop-portal-hyprland xdg-desktop-portal \
-     kitty foot waybar mako kanshi nautilus fontawesome-fonts-all \
-     pavucontrol network-manager-applet blueman \
-     vim-X11 zathura zathura-pdf-mupdf zathura-djvu zathura-ps
+sudo dnf5 install -y sway swaylock swayidle swaybg \
+     xdg-desktop-portal-wlr xdg-desktop-portal-gtk grim slurp \
+     rofi kitty foot waybar mako  kanshi nautilus fontawesome-fonts-all
 
 systemctl --user enable kanshi.service
 

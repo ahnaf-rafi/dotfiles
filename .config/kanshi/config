@@ -40,11 +40,11 @@ profile laptop {
 profile home {
   output $NIGEL_L enable position 0,0
   output $NIGEL_R enable position 2560,0
-  exec ~/bin/setup_workspaces_hyprland.sh "Dell Inc. DELL S2725DS 3BD1X14" "Dell Inc. DELL S2725DSM 72GYFD4"
+  exec ~/bin/setup_workspaces_sway.sh "Dell Inc. DELL S2725DS 3BD1X14" "Dell Inc. DELL S2725DSM 72GYFD4"
 }
 
 profile work {
   output $WORK_L enable scale 1.5 position 0,0
   output $WORK_R enable scale 1.5 position 2560,0
-  exec ~/bin/setup_workspaces_hyprland.sh "Dell Inc. DELL S2725QS 8YVPT84" "Dell Inc. DELL S2725QS CDHST84"
+  exec ~/bin/setup_workspaces_sway.sh "Dell Inc. DELL S2725QS 8YVPT84" "Dell Inc. DELL S2725QS CDHST84"
 }
