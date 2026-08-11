@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+# Usage:
+#   ./zipper.sh [DIRECTORY] [OUTPUT_NAME]
+#
+# Examples:
+#   ./zipper.sh
+#   ./zipper.sh bootstrap-lib
+#   ./zipper.sh bootstrap-lib bootstrap
+#
+# Defaults:
+#   DIRECTORY   = current directory
+#   OUTPUT_NAME = name of DIRECTORY
+
+TARGET="${1:-.}"
+
+# Remove trailing slash so basename behaves as expected.
+TARGET="${TARGET%/}"
+[[ -n "$TARGET" ]] || TARGET="/"
+
+NAME="${2:-$(basename "$(realpath "$TARGET")")}"
+TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+
+OUTFILE="${NAME}_${TIMESTAMP}.zip"
+
+zip -r "$OUTFILE" "$TARGET" \
+    --exclude ".git/*" \
+    --exclude "*.zip" \
+    --exclude "*tmp*"
+
+echo "Written to $OUTFILE"
