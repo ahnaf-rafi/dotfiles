@@ -21,9 +21,9 @@ sudo dnf5 install -y akmod-nvidia xorg-x11-drv-nvidia-cuda libva-nvidia-driver
 
 # TODO: TEMP REMOVE PLEASE
 
-sudo systemctl --user enable --now pipewire
-sudo systemctl --user enable --now pipewire-pulse
-sudo systemctl --user enable --now wireplumber
+systemctl --user enable --now pipewire
+systemctl --user enable --now pipewire-pulse
+systemctl --user enable --now wireplumber
 
 mkdir -p ~/.local/share/fonts
 

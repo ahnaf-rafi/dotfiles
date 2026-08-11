@@ -155,9 +155,9 @@ sudo dnf5 install -y \
 
 * Pipewire
 #+begin_src sh
-sudo systemctl enable --now pipewire
-sudo systemctl enable --now pipewire-pulse
-sudo systemctl enable --now wireplumber
+systemctl enable --now pipewire
+systemctl enable --now pipewire-pulse
+systemctl enable --now wireplumber
 #+end_src
 
 * TODO Fonts
