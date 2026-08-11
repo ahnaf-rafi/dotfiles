@@ -64,5 +64,3 @@ g.python3_host_prog = '~/miniforge3/bin/python3'
 g.tex_flavor = 'latex'
 g.tex_comment_nospell = 1
 -- g.tex_nospell = 1
-
-vim.cmd('set iskeyword-=_')
