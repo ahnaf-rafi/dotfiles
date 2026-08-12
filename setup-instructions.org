@@ -119,7 +119,7 @@ Then, restart the SSH daemon:
 sudo systemctl restart sshd
 #+end_src
 
-* Setting hostname
+* Setting ~hostname~
 The Fedora Everything installer allows you to set hostname: there should be a
 section of the form "Network & Host Name".
 If you are opting to set the hostname after the installation, you can set it
@@ -128,7 +128,6 @@ using:
 sudo hostnamectl set-hostname your_hostname
 #+end_src
 
-* TODO Chroot
 * Add RPM Fusion
 #+begin_src sh
 sudo dnf5 install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
@@ -155,9 +154,9 @@ sudo dnf5 install -y \
 
 * Pipewire
 #+begin_src sh
-systemctl enable --now pipewire
-systemctl enable --now pipewire-pulse
-systemctl enable --now wireplumber
+systemctl --user enable --now pipewire
+systemctl --user enable --now pipewire-pulse
+systemctl --user enable --now wireplumber
 #+end_src
 
 * TODO Fonts
@@ -220,40 +219,12 @@ sudo systemctl enable --now tlp.service
 sudo systemctl enable --now tlp-pd.service
 #+end_src
 
-* TODO Hyprland ---- REMOVE
-#+begin_src sh
-sudo dnf copr enable lionheartp/Hyprland
-
-sudo dnf5 install -y \
-     hyprland hyprland-guiutils hyprshutdown hyprpaper hyprpolkitagent rofi \
-     xdg-desktop-portal-hyprland xdg-desktop-portal \
-     kitty foot waybar mako kanshi nautilus fontawesome-fonts-all
-#+end_src
-
-
-#+begin_src sh
-sudo dnf5 remove hyprland hyprland-guiutils hyprshutdown hyprpaper \
-     hyprpolkitagent xdg-desktop-portal-hyprland
-
-sudo dnf copr remove lionheartp/Hyprland
-#+end_src
-
 * TODO Sway
 #+begin_src sh
 sudo dnf5 install -y sway swaylock swayidle swaybg \
      xdg-desktop-portal-wlr xdg-desktop-portal-gtk grim slurp \
      rofi kitty foot waybar mako kanshi nautilus fontawesome-fonts-all
 #+end_src
-
-Enable services.
-#+begin_src sh
-systemctl --user enable kanshi.service
-#+end_src
-
-** TODO Additional Hyprland packages to look into
-- hypridle
-- hyprland-plugins
-- hyprland-contrib
 
 * TODO Emacs
 I am using Emacs 31 for now (to avoid tree-sitter conflicts with Neovim 0.12).
@@ -281,7 +252,7 @@ systemctl --user enable --now emacs
 sudo dnf5 install -y vim-X11 zathura zathura-pdf-mupdf zathura-djvu zathura-ps
 #+end_src
 
-* TODO Zoom, Dropbox, texlab
+* TODO Zoom, Dropbox, ~texlab~
 These need to be installed directly from the provider.
 
 #+begin_src sh

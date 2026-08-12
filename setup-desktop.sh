@@ -52,8 +52,6 @@ sudo dnf5 install -y sway swaylock swayidle swaybg \
      xdg-desktop-portal-wlr xdg-desktop-portal-gtk grim slurp \
      rofi kitty foot waybar mako  kanshi nautilus fontawesome-fonts-all
 
-systemctl --user enable kanshi.service
-
 sudo dnf copr enable alternateved/bleeding-emacs
 # By default, the above copr repo installs emacs with PGTK support.
 # libtool and libvterm are dependencies for emacs-libvterm.
