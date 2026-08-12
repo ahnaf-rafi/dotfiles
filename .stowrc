@@ -6,7 +6,8 @@
 --ignore=^LICENSE$
 --ignore=^README\.org$
 --ignore=^setup-instructions\.org$
---ignore=^zipper\.sh$
+--ignore=^setup-desktop\.sh$
+--ignore=^.*\.zip$
 --ignore=^\.config/emacs/ar-emacs\.org$
 --ignore=^\.config/emacs/.*\.org$
 --ignore=^.*tmp.*$
