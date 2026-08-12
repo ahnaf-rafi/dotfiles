@@ -2,20 +2,17 @@
 
 sudo dnf5 install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
 
-
 sudo dnf5 install -y \
      dnf5-plugins coreutils stow which git git-delta wget curl \
      zip unzip tar tree gcc make cmake autoconf automake fzf ripgrep fd-find \
      bat fastfetch neovim python3-neovim tmux \
      @hardware-support pciutils usbutils smartmontools \
-     NetworkManager-wifi wpa_supplicant \
-     NetworkManager-bluetooth bluez \
-     pipewire wireplumber pipewire-alsa pipewire-pulseaudio \
-     alsa-utils texlive-scheme-full \
-     adwaita-icon-theme adwaita-fonts-all liberation-fonts \
+     NetworkManager-wifi wpa_supplicant NetworkManager-bluetooth bluez \
+     pipewire wireplumber pipewire-alsa pipewire-pulseaudio alsa-utils \
+     texlive-scheme-full libreoffice enchant2-devel hunspell hunspell-en-US \
+     pkgconf-pkg-config adwaita-icon-theme adwaita-fonts-all liberation-fonts \
      google-noto-sans-fonts google-noto-color-emoji-fonts
 
-sudo dnf5 install -y fastfetch tmux
 sudo dnf5 upgrade --refresh
 sudo dnf5 install -y akmod-nvidia xorg-x11-drv-nvidia-cuda libva-nvidia-driver
 

@@ -56,6 +56,19 @@
                (boundp 'mac-mouse-wheel-smooth-scroll))
       (setq-local mac-mouse-wheel-smooth-scroll nil))))
 
+(use-package jinx
+  :hook (text-mode . jinx-mode)
+  :init
+  (setq jinx-languages "en_US")
+  :bind (("M-$" . jinx-correct)
+         ("C-M-$" . jinx-languages))
+  :config
+  (with-eval-after-load 'evil
+    (evil-define-key '(normal visual motion) jinx-mode-map
+      (kbd "] s") #'jinx-next
+      (kbd "[ s") #'jinx-previous
+      (kbd "z =") #'jinx-correct)))
+
 (use-package ebib
   :init
   (setq ebib-default-directory "~/Dropbox/bib/")

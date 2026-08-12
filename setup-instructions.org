@@ -149,8 +149,8 @@ sudo dnf5 install -y \
      NetworkManager-wifi wpa_supplicant network-manager-applet \
      NetworkManager-bluetooth bluez blueman \
      pipewire wireplumber pipewire-alsa pipewire-pulseaudio \
-     alsa-utils pavucontrol \
-     texlive-scheme-full
+     alsa-utils pavucontrol pkgconf-pkg-config \
+     texlive-scheme-full libreoffice enchant2-devel hunspell hunspell-en-US
 #+end_src
 
 * Pipewire

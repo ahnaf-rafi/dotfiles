@@ -59,6 +59,24 @@
   (save-buffer)
   (ar/latex-default-compile-on-master))
 
+(defun ar/jinx-latex-ignore-command-arg-p (start)
+  "Ignore Jinx words inside selected LaTeX command arguments."
+  (when (derived-mode-p 'tex-mode)
+    (save-excursion
+      (goto-char start)
+      (when (re-search-backward
+             "\\\\\\(?:label\\|Cref\\|cref\\|ref\\|eqref\\|cite\\|citep\\|citet\\){"
+             (line-beginning-position)
+             t)
+        (goto-char (1- (match-end 0)))
+        (condition-case nil
+            (< start (scan-sexps (point) 1))
+          (scan-error nil))))))
+
+(with-eval-after-load 'jinx
+  (add-to-list 'jinx--predicates
+               #'ar/jinx-latex-ignore-command-arg-p))
+
 (defun ar/latex-mode-h ()
   (setq-local fill-nobreak-predicate nil)
   (setq-local TeX-command-default "LaTeXMk")

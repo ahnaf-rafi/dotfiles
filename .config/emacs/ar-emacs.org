@@ -548,7 +548,7 @@ This adds additional highlighting for TODO keywords.
 ;;; ar-visuals.el ends here
 #+end_src
 
-* DOC ~ar-leader.el~ library for leader and localleader implementation
+* DOC ~ar-leader.el~ library for ~leader~ and ~localleader~ implementation
 :PROPERTIES:
 :header-args:emacs-lisp: :tangle lisp/ar-leader.el :mkdirp yes
 :END:
@@ -2341,6 +2341,22 @@ As always, let's give the file a header.
       (setq-local mac-mouse-wheel-smooth-scroll nil))))
 #+end_src
 
+** TODO ~jinx~ for spelling
+#+begin_src emacs-lisp
+(use-package jinx
+  :hook (text-mode . jinx-mode)
+  :init
+  (setq jinx-languages "en_US")
+  :bind (("M-$" . jinx-correct)
+         ("C-M-$" . jinx-languages))
+  :config
+  (with-eval-after-load 'evil
+    (evil-define-key '(normal visual motion) jinx-mode-map
+      (kbd "] s") #'jinx-next
+      (kbd "[ s") #'jinx-previous
+      (kbd "z =") #'jinx-correct)))
+#+end_src
+
 ** TODO ~ebib~
 #+begin_src emacs-lisp
 (use-package ebib
@@ -2618,6 +2634,27 @@ This is required in ~init.el~ using the following code block.
   (interactive)
   (save-buffer)
   (ar/latex-default-compile-on-master))
+#+end_src
+
+*** TODO Helper: spell check in ~TeX~ with ~jinx~
+#+begin_src emacs-lisp
+(defun ar/jinx-latex-ignore-command-arg-p (start)
+  "Ignore Jinx words inside selected LaTeX command arguments."
+  (when (derived-mode-p 'tex-mode)
+    (save-excursion
+      (goto-char start)
+      (when (re-search-backward
+             "\\\\\\(?:label\\|Cref\\|cref\\|ref\\|eqref\\|cite\\|citep\\|citet\\){"
+             (line-beginning-position)
+             t)
+        (goto-char (1- (match-end 0)))
+        (condition-case nil
+            (< start (scan-sexps (point) 1))
+          (scan-error nil))))))
+
+(with-eval-after-load 'jinx
+  (add-to-list 'jinx--predicates
+               #'ar/jinx-latex-ignore-command-arg-p))
 #+end_src
 
 *** DOC Helper: Hook function
