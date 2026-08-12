@@ -16,8 +16,6 @@ sudo dnf5 install -y \
 sudo dnf5 upgrade --refresh
 sudo dnf5 install -y akmod-nvidia xorg-x11-drv-nvidia-cuda libva-nvidia-driver
 
-# TODO: TEMP REMOVE PLEASE
-
 systemctl --user enable --now pipewire
 systemctl --user enable --now pipewire-pulse
 systemctl --user enable --now wireplumber
@@ -38,7 +36,7 @@ rm NerdFontsSymbolsOnly.zip
 
 fc-cache -fv
 
-git clone git@github.com:ahnaf-rafi/dotfiles.git $HOME/dotfiles
+git clone https://github.com/ahnaf-rafi/dotfiles.git $HOME/dotfiles
 
 rm ~/{.bash_profile,.bashrc,.bash_logout,.vim}
 
@@ -50,7 +48,8 @@ sudo dnf5 install -y brave-browser
 
 sudo dnf5 install -y sway swaylock swayidle swaybg \
      xdg-desktop-portal-wlr xdg-desktop-portal-gtk grim slurp \
-     rofi kitty foot waybar mako  kanshi nautilus fontawesome-fonts-all
+     network-manager-applet blueman \
+     rofi kitty foot waybar mako kanshi nautilus fontawesome-fonts-all
 
 sudo dnf copr enable alternateved/bleeding-emacs
 # By default, the above copr repo installs emacs with PGTK support.
