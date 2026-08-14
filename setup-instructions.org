@@ -252,7 +252,7 @@ systemctl --user enable --now emacs
 sudo dnf5 install -y vim-X11 zathura zathura-pdf-mupdf zathura-djvu zathura-ps
 #+end_src
 
-* TODO Zoom, Dropbox, ~texlab~
+* TODO Zoom, Dropbox, ~texlab~, ~tree-sitter-latex~
 These need to be installed directly from the provider.
 
 #+begin_src sh
@@ -261,4 +261,28 @@ mkdir -p ~/.local/bin
 wget https://github.com/latex-lsp/texlab/releases/latest/download/texlab-x86_64-linux.tar.gz
 tar -xzf texlab-x86_64-linux.tar.gz -C ~/.local/bin
 rm texlab-x86_64-linux.tar.gz
+#+end_src
+
+#+begin_src sh
+mkdir -p ~/external-repos/
+cd ~/external-repos/
+git clone https://github.com/latex-lsp/tree-sitter-latex
+cd tree-sitter-latex
+tree-sitter generate
+make
+#+end_src
+
+- TODO: REORGANIZE PLEASE.
+
+#+begin_src sh
+sudo dnf5 install -y seatd xorg-x11-server-Xwayland pipewire-utils
+
+sudo systemctl enable --now seatd
+
+sudo usermod -aG seat $USER
+
+sudo dnf5 install -y flatpak
+
+flatpak remote-add --if-not-exists flathub https://flathub.org
+flatpak install flathub us.zoom.Zoom
 #+end_src
