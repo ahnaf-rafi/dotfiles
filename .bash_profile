@@ -35,6 +35,7 @@ if [ -z "${WAYLAND_DISPLAY:-}" ] && [ "${XDG_VTNR:-}" = "1" ]; then
             # Add the mandatory flag for NVIDIA
             SWAY_FLAGS="--unsupported-gpu"
         fi
+        export SWAY_FLAGS
         exec sway $SWAY_FLAGS
     else
         printf 'sway was not found in PATH\n' >&2
