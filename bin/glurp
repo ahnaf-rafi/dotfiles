@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+outfile="${1:-./my_screenshot.png}"
+
+grim -g "$(slurp)" "$outfile"
+
+printf 'Screenshot saved to %s\n' "$(realpath -m -- "$outfile")"
