@@ -141,7 +141,11 @@
       ("a" #'ar/save-and-latex-default-compile-on-master)
       ("v" #'TeX-view)
       (";" #'reftex-toc)
-      ("c" #'TeX-clean)))
+      ("c" #'TeX-clean))
+
+    ;; Add "SAVE-ERROR" files to clean list.
+    (dolist (texext '("\\.bbl-SAVE-ERROR" "\\.bcf-SAVE-ERROR"))
+      (add-to-list 'LaTeX-clean-intermediate-suffixes texext)))
 
   ;; Revert the PDF buffer after compilation finishes.
   (add-hook 'TeX-after-compilation-finished-functions
