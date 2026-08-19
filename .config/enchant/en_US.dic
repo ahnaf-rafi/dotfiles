@@ -4,6 +4,7 @@ observables
 pushforward
 integrable
 bijection
+bijective
 misspecified
 Lua
 LaTeX
@@ -26,6 +27,7 @@ exogeneity
 quantile
 quantiles
 unobservables
+counterfactual
 counterfactuals
 ignorable
 unconfoundedness
@@ -37,4 +39,6 @@ collinearity
 Biostatistics
 amongst
 nonparametric
+parameterization
 confounders
+dimensionality
