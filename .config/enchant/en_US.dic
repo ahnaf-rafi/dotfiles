@@ -42,3 +42,8 @@ nonparametric
 parameterization
 confounders
 dimensionality
+monotonicity
+defiers
+compliers
+estimand
+complier
