@@ -252,7 +252,7 @@ systemctl --user enable --now emacs
 sudo dnf5 install -y vim-X11 zathura zathura-pdf-mupdf zathura-djvu zathura-ps
 #+end_src
 
-* TODO Zoom, Dropbox, ~texlab~, ~tree-sitter-latex~
+* TODO Zoom, Dropbox, ~texlab~, ~tree-sitter-latex~, ~julia-lsp~
 These need to be installed directly from the provider.
 
 #+begin_src sh

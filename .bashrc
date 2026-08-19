@@ -41,3 +41,20 @@ if [ -d $XDG_CONFIG_HOME/R ] ; then
   export R_ENVIRON_USER="$XDG_CONFIG_HOME/R/Renviron"
   export R_PROFILE_USER="$XDG_CONFIG_HOME/R/Rprofile"
 fi
+
+# >>> juliaup initialize >>>
+
+# !! Contents within this block are managed by juliaup !!
+
+case ":$PATH:" in
+    *:/home/ahnaf/.juliaup/bin:*)
+        ;;
+
+    *)
+        export PATH=/home/ahnaf/.juliaup/bin${PATH:+:${PATH}}
+        ;;
+esac
+# Tab completion for juliaup and julia channel selection
+[ -f "/home/ahnaf/.julia/juliaup/completions/bash.sh" ] && source "/home/ahnaf/.julia/juliaup/completions/bash.sh"
+
+# <<< juliaup initialize <<<

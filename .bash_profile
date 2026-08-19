@@ -41,3 +41,20 @@ if [ -z "${WAYLAND_DISPLAY:-}" ] && [ "${XDG_VTNR:-}" = "1" ]; then
         printf 'sway was not found in PATH\n' >&2
     fi
 fi
+
+# >>> juliaup initialize >>>
+
+# !! Contents within this block are managed by juliaup !!
+
+case ":$PATH:" in
+    *:/home/ahnaf/.juliaup/bin:*)
+        ;;
+
+    *)
+        export PATH=/home/ahnaf/.juliaup/bin${PATH:+:${PATH}}
+        ;;
+esac
+# Tab completion for juliaup and julia channel selection
+[ -f "/home/ahnaf/.julia/juliaup/completions/bash.sh" ] && source "/home/ahnaf/.julia/juliaup/completions/bash.sh"
+
+# <<< juliaup initialize <<<
