@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# Check if a file path was provided.
+if [ -z "$1" ]; then
+    echo "Usage: $0 /path/to/input.ris"
+    exit 1
+fi
+
+# Extract just the filename without the path
+filename=$(basename "$1")
+
+# Replace the extension with .bib
+output_name="${filename%.*}.bib"
+
+# Run the conversion and save to the current working directory
+ris2xml "$1" | xml2bib -b > "./$output_name"
+
+echo "Converted: $1 -> ./$output_name"
