@@ -6,7 +6,7 @@ Documentation=info:emacs man:emacs(1) https://gnu.org/software/emacs/
 Type=forking
 ExecStart=/usr/bin/emacs --no-site-file --daemon
 ExecStop=/usr/bin/emacsclient --eval "(kill-emacs)"
-Environment="PATH=%h/.local/bin:%h/bin:/usr/local/bin:/usr/bin"
+Environment="PATH=%h/.juliaup/bin:%h/.local/bin:%h/bin:/usr/local/bin:/usr/bin"
 Restart=on-failure
 
 [Install]
