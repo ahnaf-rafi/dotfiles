@@ -2553,6 +2553,38 @@ This is required in ~init.el~ using the following code block.
 (provide 'ar-lua)
 ;;; ar-lua.el ends here
 #+end_src
+** DOC Markdown
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-markdown.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/ar-markdown.el~.
+This is required in ~init.el~ using the following code block.
+#+begin_src emacs-lisp :padline no :tangle init.el
+(require 'ar-markdown)
+#+end_src
+
+#+begin_src emacs-lisp
+;;; ar-markdown.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+#+end_src
+
+*** ~markdown-ts-mode~
+#+begin_src emacs-lisp
+(use-package markdown-ts-mode
+  :ensure nil
+  :mode ("\\.md\\'" "\\.mdx\\'" "\\.markdown\\'")
+  :config
+  (require 'markdown-ts-mode-x))
+#+end_src
+
+*** The ~ar-markdown.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-markdown)
+;;; ar-markdown.el ends here
+#+end_src
+
 ** TODO TeX
 :PROPERTIES:
 :header-args:emacs-lisp: :tangle lisp/ar-latex.el :mkdirp yes
@@ -2822,6 +2854,8 @@ This is required in ~init.el~ using the following code block.
                      ("verbatim*"     current-indentation)
                      ("filecontents"  current-indentation)
                      ("filecontents*" current-indentation)
+                     ("subappendices" current-indentation)
+                     ;; ("subappendices*" current-indentation)
                      ("frame"         current-indentation)
                      ("theorem"       current-indentation)
                      ("thm"           current-indentation)

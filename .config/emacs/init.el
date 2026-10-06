@@ -55,6 +55,7 @@
 (require 'ar-julia)
 (require 'ar-nix)
 (require 'ar-lua)
+(require 'ar-markdown)
 (require 'ar-latex)
 (require 'ar-bibtex)
 (require 'ar-org)

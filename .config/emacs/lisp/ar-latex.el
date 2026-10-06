@@ -237,6 +237,8 @@
                      ("verbatim*"     current-indentation)
                      ("filecontents"  current-indentation)
                      ("filecontents*" current-indentation)
+                     ("subappendices" current-indentation)
+                     ;; ("subappendices*" current-indentation)
                      ("frame"         current-indentation)
                      ("theorem"       current-indentation)
                      ("thm"           current-indentation)
