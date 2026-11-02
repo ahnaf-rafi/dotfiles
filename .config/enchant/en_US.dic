@@ -29,8 +29,6 @@ quantiles
 unobservables
 counterfactual
 counterfactuals
-ignorable
-unconfoundedness
 differentiability
 disutility
 additively
@@ -60,7 +58,6 @@ majorants
 extremum
 asymptotics
 multiway
-Hadamard
 Kallenberg
 Aldous
 pointwise
@@ -72,3 +69,12 @@ Linearization
 Vytlacil
 microeconomic
 Slutsky's
+equicontinuity
+exchangeability
+supremum
+subsequence
+symmetrization
+Fubini
+suprema
+Fubini's
+parametrization
