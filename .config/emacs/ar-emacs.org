@@ -1538,6 +1538,7 @@ unless explicitly called to do so, either by ~evil~ or by
 *** DOC Bindings
 #+begin_src emacs-lisp
 (with-eval-after-load 'evil-maps
+  (require 'ffap)
   (ar/leader ("w" evil-window-map))
   (let ((bindings '(("C-h" . evil-window-left)
                     ("C-j" . evil-window-down)

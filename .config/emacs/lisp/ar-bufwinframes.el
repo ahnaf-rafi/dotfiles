@@ -26,6 +26,7 @@
 ;; (setq split-height-threshold nil)
 
 (with-eval-after-load 'evil-maps
+  (require 'ffap)
   (ar/leader ("w" evil-window-map))
   (let ((bindings '(("C-h" . evil-window-left)
                     ("C-j" . evil-window-down)
