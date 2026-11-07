@@ -658,5 +658,6 @@ cd paru
 makepkg -si
 
 paru -Syyu --needed google-chrome ttf-juliamono dropbox nautilus-dropbox \
-     claude-desktop claude-code openai-codex-voice openai-codex chatgpt-dekstop
+     claude-desktop claude-code \
+     openai-codex-voice openai-codex chatgpt-dekstop
 #+end_src
