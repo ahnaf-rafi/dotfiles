@@ -1,0 +1,662 @@
+#+title: Ahnaf's installation instructions for Fedora Everything Minimal
+#+author: Ahnaf Rafi
+#+startup: overview
+#+todo: TODO(t) DOC(o) | DONE(d)
+
+Here, I record installation steps based on
+[[https://archlinux.org/][Arch Linux]].
+The Arch ISO can be downloaded from a mirror chosen from the
+[[https://archlinux.org/download/][Arch download page]].
+
+* Flash ISO onto USB device
+Identify the USB device:
+#+begin_src sh
+lsblk -o NAME,SIZE,MODEL,TRAN,MOUNTPOINTS
+#+end_src
+Suppose the USB is ~/dev/sdX~.
+Use the whole disk, not a partition like ~/dev/sdX1~.
+First unmount the device and then flash to it.
+#+begin_src sh
+sudo umount /dev/sdX?* 2>/dev/null
+sudo dd if=/path/to/FedorEverything.iso of=/dev/sdX \
+  bs=4M status=progress oflag=sync
+sync
+#+end_src
+Safely eject the USB device:
+#+begin_src sh
+sudo eject /dev/sdX
+#+end_src
+Use this USB device to install Arch Linux.
+In particular, boot into the USB device; this may involve adjusting the boot
+sequence in the BIOS menu.
+
+For computers with NVIDIA graphics cards, you may have to boot into the ISO with
+~nomodeset~.
+To do this, highlight the appropriate entry (likely something like ~Arch Linux
+install medium (x86_64, UEFI)~) at the Arch Linux boot menu and press ~e~ to
+edit the boot entry.
+Find the line containing the Linux kernel parameters; it should include
+something resembling ~archisobasedir=arch...~.
+At the end of that line, append ~nomodeset~ separated by a space.
+Then press ~Enter~ to boot the modified entry.
+
+In the next two sections, I walk through connecting to the internet in the live
+ISO environment and connecting to the live environment via SSH to conduct the
+installation steps from another machine.
+The latter is useful if you have access to another machine with a more "comfy"
+setup than the bare-bones command line.
+If not, the SSH steps can be skipped.
+
+* Connecting to the internet
+
+You should follow the instructions laid out in the here:
+https://wiki.archlinux.org/title/Installation_guide#Connect_to_the_internet.
+First check connection using the following.
+#+begin_src sh
+ip link
+ping -c 5 google.com
+#+end_src
+Wired connections should work out of the box; wireless connection
+need setup using
+[[https://wiki.archlinux.org/title/Iwd#iwctl][~iwd~ and ~iwctl~]].
+
+For wireless connections, first make sure the card is not blocked with ~rfkill~
+as laid out here:
+https://wiki.archlinux.org/title/Network_configuration/Wireless#Rfkill_caveat.
+Then, follow instructions here: https://wiki.archlinux.org/title/Iwd#iwctl.
+In particular, start by running the following.
+#+begin_src sh
+iwctl
+#+end_src
+The prompt should change to something like ~[iwd]#~.
+In this environment, type ~device list~ to list wifi devices.
+In what follows set ~name~ to the device name, e.g. ~wlan0~.
+Initiate a scan for networks with ~station wlan0 scan~.
+List available networks with ~station name get-networks~.
+Connect with ~station name connect SSID~;
+you will be prompted to enter a passphrase if one is required.
+At the ~[iwd]#~, type ~exit~ to go back to the Arch ISO prompt.
+There, type ~ping -c 5 google.com~ to check connection.
+
+* SSH from another machine
+The instructions given here are from
+https://wiki.archlinux.org/title/Install_Arch_Linux_via_SSH.
+
+In the live ISO, start by setting the root password with the command ~passwd~.
+Note that this will not set the root password for your installation; it sets the
+root password for the live environment only.
+Check that the SSH daemon is running:
+#+begin_src sh
+systemctl status sshd
+#+end_src
+Enable it if not:
+#+begin_src sh
+systemctl enable --now sshd
+#+end_src
+Check that the firewall daemon is running:
+#+begin_src sh
+systemctl status firewalld
+#+end_src
+The firewall daemon should not be running, but if it is, check if it allows the
+SSH service:
+#+begin_src sh
+firewall-cmd --query-service=ssh
+#+end_src
+If not, ensure that the SSH service is allowed by the firewall daemon:
+#+begin_src sh
+firewall-cmd --permanent --add-service=ssh
+firewall-cmd --reload
+#+end_src
+Check that password login from SSH is allowed:
+#+begin_src sh
+sshd -T | grep '^passwordauthentication'
+#+end_src
+Allow password login by editing ~/etc/ssh/sshd_config~ and adding (or
+uncommenting and editing) the line ~PasswordAuthentication yes~.
+Allow root login by adding (or uncommenting and editing) the line
+~PermitRootLogin yes~ in the same file.
+Then validate and restart:
+#+begin_src sh
+sshd -t
+systemctl restart sshd
+#+end_src
+
+Get the system IP address (look for the wlan0 or ethernet interface):
+#+begin_src sh
+ip -brief addr show
+#+end_src
+On your client machine, you can now connect to the host using the IP address you
+just found:
+#+begin_src sh
+ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@ip.address.of.target
+#+end_src
+
+* Partition disks and mount
+Follow instructions here:
+https://wiki.archlinux.org/title/Installation_guide#Partition_the_disks.
+
+I use ~lsblk~ to list out available disks and ~fdisk~ to partition them.
+I use two partitions:
+- one for boot, 1 GiB or 4 GiB depending on whether the computer might need
+  early loading of Nvidia drivers in ~initramfs~.
+  This partition needs to be of type "EFI System" for later steps to work.
+  Make sure to tag the EFI partition
+- the remainder for users (OS and ~home~).
+Many choose to also have separate OS and ~home~ partitions and possibly also a
+swap partition.
+On the latter, I choose to use a swap file instead.
+The larger 4 GiB size for the ESP (boot) is optional --- Arch recommends 1 GiB
+with 4 GiB as a defensive upper bound.
+I use 4 GiB for any computer that only has an NVIDIA graphics card.
+
+Next, we format the partitions.
+The boot partition needs to be FAT32 and I keep the non-boot partition simple,
+and format it as EXT4.
+I use an NVME SSD and so for formatting, the following commands do the job.
+Your device names and partitions may be different.
+#+begin_src
+mkfs.fat -F32 /dev/nvme0n1p1
+mkfs.ext4 /dev/nvme0n1p2
+#+end_src
+More details can be found here:
+https://wiki.archlinux.org/title/Installation_guide#Format_the_partitions.
+
+Once partitions are formatted, we can mount the file system following
+https://wiki.archlinux.org/title/Installation_guide#Mount_the_file_systems.
+On my end, this amounts to running:
+#+begin_src sh
+mount /dev/nvme0n1p2 /mnt
+mount --mkdir /dev/nvme0n1p1 /mnt/boot
+#+end_src
+One can verify with
+#+begin_src sh
+lsblk -o NAME,SIZE,FSTYPE,MOUNTPOINTS
+#+end_src
+
+* Install using ~pacstrap~
+Start Bash; the Arch installer may use Zsh by default (you can check using
+~ps -p $$ -o comm=~).
+#+begin_src sh
+bash
+#+end_src
+
+Define the package-selection function.
+It detects CPU and GPU vendors, adds laptop utilities when appropriate, and
+fills an array without installing.
+NVIDIA selection assumes hardware supported by ~nvidia-open~ --- change block
+below as appropriate.
+
+#+begin_src bash
+select_arch_packages() {
+    # Usage: select_arch_packages ARRAY [auto|laptop|desktop]
+
+    if (( $# < 1 || $# > 2 )); then
+        printf 'Usage: select_arch_packages ARRAY [auto|laptop|desktop]\n' >&2
+        return 1
+    fi
+
+    # Reserve _arch_ names for internal variables.
+    if [[ ! "$1" =~ ^[a-zA-Z_][a-zA-Z0-9_]*$ || "$1" == _arch_* ]]; then
+        printf 'Invalid output array name: %s\n' "$1" >&2
+        return 1
+    fi
+
+    local -n _arch_output="$1"
+    local _arch_machine_type="${2:-auto}"
+    local _arch_chassis_type=""
+    local _arch_cpu_vendor
+    local _arch_ucode
+    local _arch_gpu_devices
+    local _arch_gpu_vendors
+    local -a _arch_packages=()
+
+    case "$_arch_machine_type" in
+        auto|laptop|desktop) ;;
+        (*)
+            printf 'Usage: select_arch_packages ARRAY [auto|laptop|desktop]\n' >&2
+            return 1
+            ;;
+    esac
+
+    # Select CPU microcode.
+    _arch_cpu_vendor=$(
+        awk '/^vendor_id/ {print $3; exit}' /proc/cpuinfo
+    ) || return 1
+
+    case "$_arch_cpu_vendor" in
+        AuthenticAMD) _arch_ucode=amd-ucode ;;
+        GenuineIntel) _arch_ucode=intel-ucode ;;
+        (*)
+            printf 'Unknown CPU vendor: %s\n' "$_arch_cpu_vendor" >&2
+            return 1
+            ;;
+    esac
+
+    # Detect portable chassis types unless explicitly overridden.
+    if [[ "$_arch_machine_type" == auto ]]; then
+        if [[ -r /sys/class/dmi/id/chassis_type ]]; then
+            read -r _arch_chassis_type < /sys/class/dmi/id/chassis_type ||
+                _arch_chassis_type=""
+        fi
+
+        case "$_arch_chassis_type" in
+            # Portable, laptop, notebook, handheld, subnotebook,
+            # tablet, convertible, detachable.
+            8|9|10|11|14|30|31|32)
+                _arch_machine_type=laptop
+                ;;
+            (*)
+                _arch_machine_type=desktop
+                ;;
+        esac
+    fi
+
+    _arch_packages=(
+        # Base system, kernels, firmware, and development tools
+        base
+        base-devel
+        linux
+        linux-headers
+        linux-lts
+        linux-lts-headers
+        linux-firmware
+        "$_arch_ucode"
+        mkinitcpio
+
+        # Common graphics libraries
+        mesa
+        vulkan-icd-loader
+
+        # Networking, VPN, and SSH
+        networkmanager
+        network-manager-applet
+        nm-connection-editor
+        wpa_supplicant
+        iw
+        openconnect
+        networkmanager-openconnect
+        openssh
+        openssl
+
+        # Bluetooth
+        bluez
+        bluez-utils
+        blueman
+        bluetui
+
+        # Sway and desktop utilities
+        sway
+        swaybg
+        swayidle
+        swaylock
+        waybar
+        kanshi
+        mako
+        rofi
+        wl-clipboard
+        xorg-xwayland
+
+        # Desktop integration and authorization
+        polkit
+        polkit-gnome
+        gnome-keyring
+        seahorse
+        xdg-utils
+        xdg-desktop-portal
+        xdg-desktop-portal-wlr
+        xdg-desktop-portal-gtk
+        udisks2
+        libappindicator-gtk3
+
+        # Audio: PipeWire with PulseAudio and JACK compatibility
+        pipewire
+        pipewire-audio
+        pipewire-alsa
+        pipewire-pulse
+        pipewire-jack
+        wireplumber
+        alsa-utils
+        pavucontrol
+
+        # Terminals and shell tools
+        foot
+        foot-terminfo
+        kitty
+        bash-completion
+        coreutils
+        tmux
+        fzf
+        fd
+        ripgrep
+        bat
+        fastfetch
+        htop
+        stow
+        sudo
+        which
+
+        # Editors and version control
+        emacs-wayland
+        neovim
+        vim
+        nano
+        git
+        github-cli
+        lazygit
+        git-delta
+
+        # Programming and numerical computing
+        make
+        cmake
+        clang
+        python
+        r
+        gcc-fortran
+        openblas
+
+        # LaTeX and documentation
+        texlive-meta
+        biber
+        texlab
+        man-db
+        man-pages
+        texinfo
+
+        # Office and spelling
+        libreoffice-still
+        hunspell
+        hunspell-en_us
+        enchant
+        pkgconf
+
+        # Browser, file management, and archives
+        firefox
+        nautilus
+        yazi
+        xarchiver
+        curl
+        wget
+        tar
+        gzip
+        zip
+        unzip
+
+        # Screenshots and image manipulation
+        grim
+        slurp
+        flameshot
+        imagemagick
+
+        # Document viewer and format plugins
+        zathura
+        zathura-pdf-mupdf
+        zathura-djvu
+        zathura-ps
+        zathura-cb
+
+        # Printing
+        cups
+        cups-pdf
+
+        # Passwords and encryption tools
+        pass
+        gnupg
+
+        # Filesystems, package maintenance, and hardware monitoring
+        dosfstools
+        mtools
+        pacman-contrib
+        smartmontools
+        lm_sensors
+        sysstat
+
+        # Fonts and icons
+        adwaita-fonts
+        adwaita-icon-theme
+        noto-fonts
+        noto-fonts-emoji
+        ttf-liberation
+        ttf-jetbrains-mono-nerd
+        ttf-nerd-fonts-symbols
+        ttf-nerd-fonts-symbols-mono
+        ttf-font-awesome
+    )
+
+    # Detect PCI display controllers.
+    _arch_gpu_devices=$(LC_ALL=C lspci -Dn -d ::03xx) || {
+        printf 'Failed to inspect PCI graphics devices.\n' >&2
+        return 1
+    }
+
+    _arch_gpu_vendors=$(
+        awk '{split($3, id, ":"); print id[1]}' <<< "$_arch_gpu_devices" |
+            sort -u
+    ) || return 1
+
+    # Independent checks support machines with multiple GPU vendors.
+    if grep -qx '10de' <<< "$_arch_gpu_vendors"; then
+        _arch_packages+=(
+            nvidia-open
+            nvidia-open-lts
+            nvidia-utils
+        )
+    fi
+
+    if grep -qx '8086' <<< "$_arch_gpu_vendors"; then
+        _arch_packages+=(
+            vulkan-intel
+        )
+    fi
+
+    if grep -qx '1002' <<< "$_arch_gpu_vendors"; then
+        _arch_packages+=(
+            vulkan-radeon
+        )
+    fi
+
+    # Laptop-specific utilities and power management.
+    if [[ "$_arch_machine_type" == laptop ]]; then
+        _arch_packages+=(
+            acpi
+            brightnessctl
+            tlp
+            tlp-rdw
+            tlpui
+        )
+    fi
+
+    # Publish the completed array only after selection succeeds.
+    _arch_output=("${_arch_packages[@]}") || return 1
+
+    printf 'Machine profile: %s\n' "$_arch_machine_type"
+    printf 'CPU microcode: %s\n' "$_arch_ucode"
+    printf 'GPU vendor IDs:\n%s\n' "${_arch_gpu_vendors:-none detected}"
+    printf 'Selected %s packages.\n' "${#_arch_packages[@]}"
+
+    return 0
+}
+#+end_src
+Select and display the packages.
+Replace ~auto~ with ~laptop~ or ~desktop~ to override chassis detection;
+unrecognized chassis types default to desktop.
+#+begin_src bash
+declare -a packages=()
+
+if select_arch_packages packages auto; then
+    printf '\nSelected packages:\n'
+    printf '  %s\n' "${packages[@]}"
+else
+    packages=()
+    printf 'Package selection failed; package list cleared.\n' >&2
+fi
+#+end_src
+Check the target mounts before installing.
+Confirm that ~/mnt~ is the intended root partition and ~/mnt/boot~ is the ESP.
+#+begin_src bash
+findmnt -R /mnt
+#+end_src
+Install the selected packages into ~/mnt~.
+An empty selection or missing mount prevents installation in the source block
+below.
+#+begin_src bash
+if (( ${#packages[@]} == 0 )); then
+    printf 'No packages selected; skipping installation.\n' >&2
+elif ! mountpoint -q /mnt; then
+    printf '/mnt is not a mount point; skipping installation.\n' >&2
+elif ! mountpoint -q /mnt/boot; then
+    printf '/mnt/boot is not a mount point; skipping installation.\n' >&2
+elif pacstrap -K /mnt --needed "${packages[@]}"; then
+    printf 'Package installation completed.\n'
+else
+    printf 'Package installation failed; see the output above.\n' >&2
+fi
+#+end_src
+
+* Creating a ~swapfile~
+I do this before running the ~genfstab~ commands.
+#+begin_src sh
+if [[ -e /mnt/swapfile ]]; then
+    printf '/mnt/swapfile already exists; leaving it unchanged.\n' >&2
+else
+    install -m 600 /dev/null /mnt/swapfile &&
+        dd if=/dev/zero of=/mnt/swapfile bs=1M count=8192 status=progress &&
+        mkswap /mnt/swapfile &&
+        swapon /mnt/swapfile
+fi
+#+end_src
+
+* Configure the system and finish installation
+Follow instructions here:
+https://wiki.archlinux.org/title/Installation_guide#Configure_the_system
+
+Generate the ~fstab~
+#+begin_src sh
+genfstab -U /mnt >> /mnt/etc/fstab
+# Check results
+cat /mnt/etc/fstab
+#+end_src
+Change root into new system to interact with it.
+#+begin_src sh
+arch-chroot -S /mnt
+#+end_src
+The first thing I do is set root password:
+#+begin_src sh
+passwd
+#+end_src
+Next, I create a local user for myself:
+#+begin_src sh
+useradd -m -g users -G wheel <username>
+passwd <username>
+#+end_src
+
+We need to generate locales.
+First edit ~/etc/locale.gen~ and uncomment the UTF-8 locales you will be using.
+For me, this is the ~en_US.UTF-8 UTF-8~ line.
+Then, run
+#+begin_src sh
+locale-gen
+#+end_src
+Next, create the ~/etc/locale.conf~ and set the LANG variable accordingly.
+For me, this is a one line file reading
+#+begin_src sh
+LANG=en_US.UTF-8
+#+end_src
+I set the console keyboard layout in ~/etc/vconsole.conf~ with one line as well:
+#+begin_src sh
+KEYMAP=us
+#+end_src
+Next, I set local time:
+#+begin_src sh
+ln -sf /usr/share/zoneinfo/Area/Location /etc/localtime
+#+end_src
+For me, ~Area/Location~ is ~America/New_York~.
+In addition, set network hostname by editing ~/etc/hostname~
+
+I edit the ~/etc/mkinitcpio.conf~ for NVIDIA-only computers to enable early
+loading of NVIDIA graphics modules.
+In particular I adjust the line for ~MODULES~ as follows:
+#+begin_src sh
+MODULES=(nvidia nvidia_modeset nvidia_uvm nvidia_drm)
+#+end_src
+Then I rebuild both kernels' initramfs images:
+#+begin_src sh
+mkinitcpio -P
+#+end_src
+
+* ~systemd-boot~
+#+begin_src sh
+bootctl --esp-path=/boot install
+
+mkdir -p /boot/loader/entries
+
+cat > /boot/loader/loader.conf <<'EOF'
+default arch.conf
+timeout 5
+console-mode keep
+editor yes
+EOF
+
+root_uuid=$(blkid -s UUID -o value /dev/nvme0n1p2)
+
+if [[ -n "$root_uuid" ]]; then
+    cat > /boot/loader/entries/arch.conf <<EOF
+title   Arch Linux
+linux   /vmlinuz-linux
+initrd  /initramfs-linux.img
+options root=UUID=$root_uuid rw
+EOF
+
+    cat > /boot/loader/entries/arch-lts.conf <<EOF
+title   Arch Linux (LTS)
+linux   /vmlinuz-linux-lts
+initrd  /initramfs-linux-lts.img
+options root=UUID=$root_uuid rw
+EOF
+else
+    printf 'Could not determine root UUID; entries not written.\n' >&2
+fi
+
+# Verify
+bootctl --esp-path=/boot list
+#+end_src
+
+* Final touches
+#+begin_src sh
+systemctl enable NetworkManager.service
+
+systemctl enable sshd.service
+
+# Save the system time to the hardware clock.
+hwclock --systohc
+
+# Enable automatic time synchronization.
+systemctl enable systemd-timesyncd.service
+
+# Uncomment wheel group here.
+EDITOR=vim visudo
+#+end_src
+
+#+begin_src sh
+exit
+
+cd /
+swapon --show
+
+NAME          TYPE SIZE USED PRIO
+/mnt/swapfile file   8G   0B   -1
+
+swapoff /mnt/swapfile
+
+umount -R /mnt && reboot
+#+end_src
+
+* AUR
+#+begin_src sh
+sudo pacman -S --needed base-devel
+git clone https://aur.archlinux.org/paru.git
+cd paru
+makepkg -si
+
+paru -Syyu --needed google-chrome ttf-juliamono dropbox nautilus-dropbox \
+     claude-desktop claude-code openai-codex-voice openai-codex chatgpt-dekstop
+#+end_src

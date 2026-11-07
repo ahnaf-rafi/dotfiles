@@ -6,9 +6,14 @@ Fedora Everything ISO from [[https://fedoraproject.org/misc/][https://fedoraproj
 See the [[file:./setup-instructions.org][setup-instructions.org]] file to see how things are set up.
 
 Ensure git is installed:
-#+begin_src sh
-sudo dnf install -y git
-#+end_src
+- For Fedora:
+  #+begin_src sh
+  sudo dnf install -y git
+  #+end_src
+- For Arch:
+  #+begin_src sh
+  sudo pacman install -y git
+  #+end_src
 Backup an existing local dotfiles repository if needed:
 #+begin_src sh
 mv $HOME/dotfiles $HOME/dotfiles-bak
