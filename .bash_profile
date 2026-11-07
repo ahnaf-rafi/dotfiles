@@ -47,14 +47,14 @@ fi
 # !! Contents within this block are managed by juliaup !!
 
 case ":$PATH:" in
-    *:/home/ahnaf/.juliaup/bin:*)
+    *:"${HOME}/.juliaup/bin":*)
         ;;
 
     *)
-        export PATH=/home/ahnaf/.juliaup/bin${PATH:+:${PATH}}
+        export PATH="${HOME}/.juliaup/bin"${PATH:+:${PATH}}
         ;;
 esac
 # Tab completion for juliaup and julia channel selection
-[ -f "/home/ahnaf/.julia/juliaup/completions/bash.sh" ] && source "/home/ahnaf/.julia/juliaup/completions/bash.sh"
+[ -f "${HOME}/.julia/juliaup/completions/bash.sh" ] && source "${HOME}/.julia/juliaup/completions/bash.sh"
 
 # <<< juliaup initialize <<<
