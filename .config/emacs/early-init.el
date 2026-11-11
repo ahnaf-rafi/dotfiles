@@ -80,6 +80,9 @@
 (when (native-comp-available-p)
   (setq native-comp-async-report-warnings-errors 'silent))
 
+;; Suppress warning popups while maintaining the log in the *Warnings* buffer
+(setq warning-minimum-level :error)
+
 (setq package-enable-at-startup nil)
 
 (defconst ar/emacs-lisp-dir (expand-file-name "lisp" user-emacs-directory)

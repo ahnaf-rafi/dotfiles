@@ -173,6 +173,9 @@ Thankfully, these warnings can be made silent.
 ;; Make native compilation silent.
 (when (native-comp-available-p)
   (setq native-comp-async-report-warnings-errors 'silent))
+
+;; Suppress warning popups while maintaining the log in the *Warnings* buffer
+(setq warning-minimum-level :error)
 #+end_src
 
 ** Disable ~package.el~
