@@ -16,7 +16,7 @@ fi
 
 # User specific environment
 if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]; then
-    PATH="$HOME/.local/bin:$HOME/bin:$PATH"
+    PATH="$HOME/.local/bin:$HOME/bin:/usr/bin/vendor_perl:$PATH"
 fi
 export PATH
 
