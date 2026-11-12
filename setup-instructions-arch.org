@@ -344,6 +344,9 @@ select_arch_packages() {
         github-cli
         lazygit
         git-delta
+        nodejs
+        npm
+        tree-sitter-cli
 
         # Programming and numerical computing
         make
