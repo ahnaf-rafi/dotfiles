@@ -9,11 +9,6 @@ fi
 # Enable fzf keybindings and fuzzy completion.
 eval "$(fzf --bash)"
 
-# Alias definitions in ~/.bash_aliases.
-if [ -f ~/.bash_aliases ]; then
-  . ~/.bash_aliases
-fi
-
 # User specific environment
 if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]; then
     PATH="$HOME/.local/bin:$HOME/bin:/usr/bin/vendor_perl:$PATH"
@@ -40,6 +35,11 @@ export FZF_ALT_C_COMMAND='fd -t d -H -L -E .dots -E .git'
 if [ -d $XDG_CONFIG_HOME/R ] ; then
   export R_ENVIRON_USER="$XDG_CONFIG_HOME/R/Renviron"
   export R_PROFILE_USER="$XDG_CONFIG_HOME/R/Rprofile"
+fi
+
+# Alias definitions in ~/.bash_aliases.
+if [ -f ~/.bash_aliases ]; then
+  . ~/.bash_aliases
 fi
 
 # >>> juliaup initialize >>>
