@@ -338,7 +338,7 @@ select_arch_packages() {
         # Editors and version control
         emacs-wayland
         neovim
-        vim
+        gvim
         nano
         git
         github-cli
