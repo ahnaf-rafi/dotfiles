@@ -466,9 +466,7 @@ requirement; the tracked setup does not establish an annotation workflow.
 Repair the picker interface before general reuse: `fzath` consumes a single
 selection, while global fzf options allow multiple selections. The same
 filename-delimiter and cancellation rules from Section 1.4 apply.
-For CSV, Python's `csv` module suits transformations and checks. EPUB reading
-can move to a separate reader. Neither requires an editor plugin merely to
-keep the document workflow available.
+EPUB reading can move to a separate reader.
 
 #### 1.12.1. Terminal images: Yazi, Kitty, and Überzug++
 
@@ -520,6 +518,23 @@ References: [Yazi image support](https://yazi-rs.github.io/docs/image-preview/),
 [Kitty icat](https://sw.kovidgoyal.net/kitty/kittens/icat/),
 [Überzug++](https://github.com/jstkdng/ueberzugpp), and
 [Chafa](https://hpjansson.org/chafa/).
+
+#### 1.12.2. CSV editing and column alignment
+
+Use `csvview.nvim` in Neovim for an aligned view of CSV and TSV files. It
+uses virtual text for padding, so toggling the view leaves the file contents
+intact. Use `csv.vim` when the same column commands need to work in Vim and
+Neovim.
+
+| Plugin | Editors | Alignment and other features |
+| --- | --- | --- |
+| `csvview.nvim` | Neovim | `:CsvViewToggle` switches the aligned display on or off. Supports sticky headers and field motions and text objects. [csvview.nvim](https://github.com/hat0uma/csvview.nvim) |
+| `csv.vim` | Vim and Neovim | `:ArrangeColumn` pads the buffer and `:UnArrangeColumn` removes padding. Also provides column search, sorting, and editing commands. [csv.vim](https://github.com/chrisbra/csv.vim) |
+| Rainbow CSV | Vim and Neovim | Colors fields by column and supports SQL-like queries. `:RainbowAlign` adds padding to the buffer and `:RainbowShrink` removes it. Use highlighting alone when preserving field text matters. [Rainbow CSV](https://github.com/mechatroner/rainbow_csv) |
+
+For research data, prefer display-only alignment where available. Saving a
+padded buffer can change values when downstream parsers preserve whitespace.
+Use Python's `csv` module for scripted transformations and checks.
 
 ### 1.13. Spelling, prose editing, and the visual interface
 
