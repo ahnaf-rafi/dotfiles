@@ -53,6 +53,7 @@
 (require 'ar-coding-tools)
 (require 'ar-tools)
 (require 'ar-julia)
+(require 'ar-python)
 (require 'ar-nix)
 (require 'ar-lua)
 (require 'ar-markdown)

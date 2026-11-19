@@ -2499,6 +2499,43 @@ This is required in ~init.el~ using the following code block.
 ;;; ar-julia.el ends here
 #+end_src
 
+** Python
+:PROPERTIES:
+:header-args:emacs-lisp: :tangle lisp/ar-python.el :mkdirp yes
+:END:
+
+In this section, code blocks are tangled to ~lisp/ar-python.el~.
+This is required in ~init.el~ using the following code block.
+#+begin_src emacs-lisp :padline no :tangle init.el
+(require 'ar-python)
+#+end_src
+
+*** TODO ~python-mode~ and ~python-ts-mode~
+#+begin_src emacs-lisp
+;;; ar-python.el --- -*- lexical-binding: t; -*-
+
+;;; Code:
+
+(use-package py-vterm-interaction
+  :ensure t
+  :hook (python-base-mode . ar/python-vterm-setup)
+  :init
+  (defun ar/python-vterm-setup ()
+    (when-let* ((root (locate-dominating-file default-directory "pyproject.toml"))
+                (project-dir (directory-file-name (expand-file-name root))))
+      (setq-local py-vterm-interaction-repl-program
+                  (format "uv run --directory %s python"
+                          (shell-quote-argument project-dir))
+                  py-vterm-interaction-session project-dir)
+      (py-vterm-interaction-mode 1))))
+#+end_src
+
+*** The ~ar-python.el~ call to ~provide~
+#+begin_src emacs-lisp
+(provide 'ar-python)
+;;; ar-python.el ends here
+#+end_src
+
 ** Nix
 :PROPERTIES:
 :header-args:emacs-lisp: :tangle lisp/ar-nix.el :mkdirp yes
