@@ -2,16 +2,8 @@
 require("base")
 
 vim.pack.add({
-  -- Colors
-  { src = "https://github.com/ellisonleao/gruvbox.nvim" },
-
-  -- Editing
-  -- { src = "" },
-
-  -- Fuzzy finding
-  -- { src = "" },
   -- Files
-  -- { src = "" },
+  { src = "https://github.com/stevearc/oil.nvim" },
   -- Git
   -- { src = "" },
   -- Snippets
